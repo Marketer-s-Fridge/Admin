@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
-import 'react-calendar/dist/Calendar.css';
+import "react-calendar/dist/Calendar.css";
 
+const pretendard = localFont({
+  src: "../fonts/Pretendard-Regular.ttf", // 파일 경로 확인!
+  display: "swap",
+  variable: "--font-pretendard",
+});
 
 const playFair = localFont({
   src: "../fonts/PlayfairDisplay-Regular.ttf",
@@ -34,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playFair.variable} 
+        className={`${geistSans.variable} ${geistMono.variable} ${playFair.variable} ${pretendard.variable}     font-pretendard 
         antialiased`}
       >
         {children}

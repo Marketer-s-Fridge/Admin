@@ -6,6 +6,7 @@ import { ko } from "date-fns/locale";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "@/styles/bookingUploadPopup.css"; // ← 이걸로 모듈 말고 글로벌로!
+import TimeDropdown from "./timeDropdown";
 
 interface BookingUploadPopupProps {
   onClose: () => void;
@@ -67,12 +68,8 @@ export const BookingUploadPopup: React.FC<BookingUploadPopupProps> = ({
                   value={format(selectedDate, "yyyy.MM.dd", { locale: ko })}
                   className=" border-gray-300 border-1 rounded-lg px-3 py-2.5"
                 />
-                <input
-                  type="text"
-                  value={selectedTime}
-                  onChange={(e) => setSelectedTime(e.target.value)}
-                  className="border-gray-300 border-1 rounded-lg px-3 py-2.5"
-                />
+                  <TimeDropdown value={selectedTime} onSelect={setSelectedTime} />
+
               </div>
 
               <div className="flex gap-4 h-10 text-nowrap justify-end mt-10">
