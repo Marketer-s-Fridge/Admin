@@ -14,7 +14,7 @@ interface InquiryItem {
   email: string;
   type: string;
   date: string;
-  status: "답변 완료" | "답변 임시저장" | "접수됨" | "스팸/무효";
+  status: "답변 완료" | "답변 임시저장" | "미답변" | "삭제 변경";
   responder: string;
   hasAttachment?: boolean;
 }
@@ -45,7 +45,7 @@ const sampleData: InquiryItem[] = [
     email: "park987@naver.com",
     type: "기술적 문제",
     date: "2025/05/10",
-    status: "접수됨",
+    status: "미답변",
     responder: "Admin12",
   },
   {
@@ -54,7 +54,7 @@ const sampleData: InquiryItem[] = [
     email: "jung456@gmail.com",
     type: "기술적 문제",
     date: "2025/05/10",
-    status: "스팸/무효",
+    status: "삭제 변경",
     responder: "Admin12",
   },
   {
@@ -83,7 +83,7 @@ const sampleData: InquiryItem[] = [
     email: "baek789@naver.com",
     type: "기술적 문제",
     date: "2025/05/10",
-    status: "스팸/무효",
+    status: "삭제 변경",
     responder: "Admin12",
   },
 ];
@@ -121,7 +121,7 @@ const InquiryRepliesPage = () => {
               options={["최신순", "오래된 순"]}
               onSelect={() => {}}
               buttonClassName="border-0"
-              className="text-gray-500"
+              className="text-gray-500 place-self-end"
             />
           </div>
         </div>
@@ -165,7 +165,7 @@ const InquiryRepliesPage = () => {
                     ? "text-green-600"
                     : item.status === "답변 임시저장"
                     ? "text-orange-400"
-                    : item.status === "접수됨"
+                    : item.status === "미답변"
                     ? "text-blue-500"
                     : "text-gray-500"
                 }`}
