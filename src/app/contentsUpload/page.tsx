@@ -34,13 +34,20 @@ const UploadPage: React.FC = () => {
           <div className="flex w-[400px] flex-col justify-between">
             <div>
               {/* 대표 이미지 */}
-              <div className="w-full flex justify-center mb-4">
+              <div className="relative w-full flex justify-center mb-4">
                 {selectedImages.length > 0 ? (
-                  <img
-                    src={selectedImages[0]}
-                    className="w-full aspect-[3/4] rounded object-cover"
-                    alt="대표 이미지"
-                  />
+                  <>
+                    <img
+                      src={selectedImages[0]}
+                      className="w-full aspect-[3/4] rounded object-cover"
+                      alt="대표 이미지"
+                    />
+
+                    {/* ✅ 오른쪽 상단 숫자 표시 */}
+                    <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                      1 / {selectedImages.length}
+                    </div>
+                  </>
                 ) : (
                   <div className="w-full aspect-[3/4] bg-gray-100 rounded flex items-center justify-center text-gray-400">
                     대표 이미지 미리보기
