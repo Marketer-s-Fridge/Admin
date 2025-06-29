@@ -4,6 +4,7 @@ import { useState } from "react";
 import AdminHeader from "@/components/adminHeader";
 import React from "react";
 import { FiPaperclip } from "react-icons/fi";
+import Breadcrumb from "@/components/breadCrumb";
 
 const InquiryDetailPage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -25,11 +26,16 @@ const InquiryDetailPage: React.FC = () => {
   return (
     <div className="flex flex-col bg-white text-[#1D1D1D]">
       <AdminHeader />
+      <Breadcrumb
+        items={[
+          { label: "문의 답변 관리", href: "/inquiryReplies" },
+          { label: "문의" }, // 현재 페이지는 링크 없이 표시
+        ]}
+      />
       <main className="w-full flex justify-center px-4">
-        <div className="w-full px-[5%] lg:px-[22.5%] mt-20">
+        <div className="w-full px-[5%] lg:px-[22.5%] mt-10">
           {/* 문의 카테고리 */}
           <p className="text-lg font-bold mb-2">[ 기술적 문제 ]</p>
-
           {/* 유저 정보 */}
           <div className="flex items-center gap-3 mb-1 border-gray-600 border-y-1 py-2">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
@@ -38,7 +44,6 @@ const InquiryDetailPage: React.FC = () => {
             <span className="ml-auto text-sm">2025-05-02</span>
             <span className="text-sm ">[접수됨]</span>
           </div>
-
           <div className="py-8">
             {/* 제목 */}
             <p className="text-base font-bold mb-6">
@@ -67,12 +72,10 @@ const InquiryDetailPage: React.FC = () => {
               </span>
             </div>
           </div>
-
           <div className="w-full h-[1px] bg-[#4a5565] mb-3" />
-
           {/* 답변 작성 */}
           <div className="flex flex-1 flex-row mt-7 mb-15 gap-2">
-            <p className="w-1/9 py-3 text-base font-bold flex-nowrap text-center">
+            <p className="w-1/9 py-3 text-base font-bold flex-nowrap text-left">
               답변
             </p>
             <div className="w-full leading-relaxed">

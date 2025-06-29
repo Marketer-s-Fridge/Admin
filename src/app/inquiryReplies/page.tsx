@@ -6,6 +6,7 @@ import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import { FiPaperclip } from "react-icons/fi";
+import Link from "next/link";
 
 interface InquiryItem {
   id: number;
@@ -138,45 +139,44 @@ const InquiryRepliesPage = () => {
 
         {/* 테이블 데이터 */}
         {sampleData.map((item) => (
-          <div
-            key={item.id}
-            className="grid grid-cols-[1fr_2.5fr_3.2fr_2fr_2fr_2fr_2fr] py-3 items-center text-sm text-gray-700 "
-          >
-            <div className="flex justify-center items-center font-semibold ">
-              {item.id}
+          <Link key={item.id} href={`/inquiryReplies/detail`} passHref>
+            <div className="grid grid-cols-[1fr_2.5fr_3.2fr_2fr_2fr_2fr_2fr] py-3 items-center text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+              <div className="flex justify-center items-center font-semibold">
+                {item.id}
+              </div>
+              <div className="flex justify-start items-center gap-1 mx-9">
+                {item.hasAttachment && (
+                  <FiPaperclip className="text-gray-400 w-4 h-4" />
+                )}
+                {item.name}
+              </div>
+              <div className="flex justify-start items-center pl-12">
+                {item.email}
+              </div>
+              <div className="flex justify-center items-center">
+                {item.type}
+              </div>
+              <div className="flex justify-center items-center">
+                {item.date}
+              </div>
+              <div
+                className={`flex justify-start items-center font-semibold pl-10 ${
+                  item.status === "답변 완료"
+                    ? "text-green-600"
+                    : item.status === "답변 임시저장"
+                    ? "text-orange-400"
+                    : item.status === "접수됨"
+                    ? "text-blue-500"
+                    : "text-gray-500"
+                }`}
+              >
+                {item.status}
+              </div>
+              <div className="flex justify-center items-center">
+                {item.responder}
+              </div>
             </div>
-
-            <div className="flex justify-start items-center gap-1 mx-9">
-              {item.hasAttachment && (
-                <FiPaperclip className="text-gray-400 w-4 h-4" />
-              )}
-              {item.name}
-            </div>
-
-            <div className="flex justify-start items-center pl-12">
-              {item.email}
-            </div>
-            <div className="flex justify-center items-center ">{item.type}</div>
-            <div className="flex justify-center items-center">{item.date}</div>
-
-            <div
-              className={`flex justify-start items-center font-semibold pl-10 ${
-                item.status === "답변 완료"
-                  ? "text-green-600"
-                  : item.status === "답변 임시저장"
-                  ? "text-orange-400"
-                  : item.status === "접수됨"
-                  ? "text-blue-500"
-                  : "text-gray-500"
-              }`}
-            >
-              {item.status}
-            </div>
-
-            <div className="flex justify-center items-center">
-              {item.responder}
-            </div>
-          </div>
+          </Link>
         ))}
 
         {/* 페이지네이션 */}
