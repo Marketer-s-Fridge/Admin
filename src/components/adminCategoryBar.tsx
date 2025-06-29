@@ -51,10 +51,10 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
   };
 
   return (
-    <div className="relative pl-[10%] sm:pl-[15%] w-full border-b-2 border-gray-300 text-sm font-semibold select-none">
-      <div className="relative w-[160px]">
+    <div className="relative pl-[10%] sm:pl-[14.2%] w-full border-b-2 border-gray-300 text-lg font-semibold select-none">
+      <div className="relative w-[180px]">
         <div
-          className="flex flex-row justify-between items-center text-start px-3 py-3 bg-white cursor-pointer"
+          className="flex flex-row justify-between items-center text-start px-3 py-2 bg-white cursor-pointer"
           onClick={() => setIsOpen((prev) => !prev)}
         >
           <span>{selected}</span>
@@ -67,7 +67,7 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
         </div>
 
         {isOpen && (
-          <div className="text-start w-full absolute top-0 left-0 bg-white border border-gray-200 rounded-xl shadow z-50 py-1">
+          <div className="text-start w-full absolute left-0 bg-white border text-sm border-gray-200 rounded-xl shadow z-50 py-1">
             {items.map((item) => {
               const isSelected = item === selected;
               return (
