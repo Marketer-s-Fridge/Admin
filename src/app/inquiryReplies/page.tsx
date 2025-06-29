@@ -88,8 +88,41 @@ const sampleData: InquiryItem[] = [
   },
 ];
 
+
 const InquiryRepliesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"최신순" | "오래된 순">("최신순");
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  const handleTypeFilterChange = (value: string) => {
+    setTypeFilter(value);
+  };
+
+  const handleSortOrderChange = (value: "최신순" | "오래된 순") => {
+    setSortOrder(value);
+  };
+
+  // ✅ 필터 및 정렬 적용
+  const filteredData = sampleData
+  .filter((item) => {
+    const statusMatch =
+      !statusFilter || statusFilter === "전체" || item.status === statusFilter;
+    const typeMatch =
+      !typeFilter || typeFilter === "전체" || item.type === typeFilter;
+    return statusMatch && typeMatch;
+  })
+  .sort((a, b) => {
+    if (sortOrder === "최신순") {
+      return b.id - a.id;
+    } else {
+      return a.id - b.id;
+    }
+  });
 
   return (
     <main className="bg-white min-h-screen">
@@ -101,16 +134,28 @@ const InquiryRepliesPage = () => {
         <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
           <div className="flex flex-row w-4/11 gap-2">
             <CustomDropdown
-              label="답변 처리 상태 "
-              options={["답변 완료", "답변 작성 중", "접수됨", "스팸/무효"]}
-              onSelect={() => {}}
+              label="답변 처리 상태"
+              options={[
+                "전체",
+                "답변 완료",
+                "답변 임시저장",
+                "미답변",
+                "삭제 변경",
+              ]}
+              onSelect={handleStatusFilterChange}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
             <CustomDropdown
               label="문의 유형"
-              options={["버그/오류 제보", "피드백 및 제안", "기타 문의"]}
-              onSelect={() => {}}
+              options={[
+                "전체",
+                "기술적 문제",
+                "버그/오류 제보",
+                "피드백 및 제안",
+                "기타 문의",
+              ]}
+              onSelect={handleTypeFilterChange}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -119,7 +164,9 @@ const InquiryRepliesPage = () => {
             <CustomDropdown
               label="최신순"
               options={["최신순", "오래된 순"]}
-              onSelect={() => {}}
+              onSelect={(value: string) =>
+                handleSortOrderChange(value as "최신순" | "오래된 순")
+              }
               buttonClassName="border-0"
               className="text-gray-500 place-self-end"
             />
@@ -137,47 +184,53 @@ const InquiryRepliesPage = () => {
           <div className="text-center">답변자</div>
         </div>
 
-        {/* 테이블 데이터 */}
-        {sampleData.map((item) => (
-          <Link key={item.id} href={`/inquiryReplies/detail`} passHref>
-            <div className="grid grid-cols-[1fr_2.5fr_3.2fr_2fr_2fr_2fr_2fr] py-3 items-center text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
-              <div className="flex justify-center items-center font-semibold">
-                {item.id}
+        {/* 필터된 데이터 표시 */}
+        {filteredData.length > 0 ? (
+          filteredData.map((item) => (
+            <Link key={item.id} href={`/inquiryReplies/detail`} passHref>
+              <div className="grid grid-cols-[1fr_2.5fr_3.2fr_2fr_2fr_2fr_2fr] py-3 items-center text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
+                <div className="flex justify-center items-center font-semibold">
+                  {item.id}
+                </div>
+                <div className="flex justify-start items-center gap-1 mx-9">
+                  {item.hasAttachment && (
+                    <FiPaperclip className="text-gray-400 w-4 h-4" />
+                  )}
+                  {item.name}
+                </div>
+                <div className="flex justify-start items-center pl-12">
+                  {item.email}
+                </div>
+                <div className="flex justify-center items-center">
+                  {item.type}
+                </div>
+                <div className="flex justify-center items-center">
+                  {item.date}
+                </div>
+                <div
+                  className={`flex justify-start items-center font-semibold pl-10 ${
+                    item.status === "답변 완료"
+                      ? "text-green-600"
+                      : item.status === "답변 임시저장"
+                      ? "text-orange-400"
+                      : item.status === "미답변"
+                      ? "text-blue-500"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {item.status}
+                </div>
+                <div className="flex justify-center items-center">
+                  {item.responder}
+                </div>
               </div>
-              <div className="flex justify-start items-center gap-1 mx-9">
-                {item.hasAttachment && (
-                  <FiPaperclip className="text-gray-400 w-4 h-4" />
-                )}
-                {item.name}
-              </div>
-              <div className="flex justify-start items-center pl-12">
-                {item.email}
-              </div>
-              <div className="flex justify-center items-center">
-                {item.type}
-              </div>
-              <div className="flex justify-center items-center">
-                {item.date}
-              </div>
-              <div
-                className={`flex justify-start items-center font-semibold pl-10 ${
-                  item.status === "답변 완료"
-                    ? "text-green-600"
-                    : item.status === "답변 임시저장"
-                    ? "text-orange-400"
-                    : item.status === "미답변"
-                    ? "text-blue-500"
-                    : "text-gray-500"
-                }`}
-              >
-                {item.status}
-              </div>
-              <div className="flex justify-center items-center">
-                {item.responder}
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))
+        ) : (
+          <div className="text-center py-6 text-gray-400 text-sm">
+            조건에 맞는 문의가 없습니다.
+          </div>
+        )}
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-6">
