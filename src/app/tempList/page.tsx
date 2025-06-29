@@ -105,7 +105,21 @@ const sampleData: ContentItem[] = [
 
 const TempListPage = () => {
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+  // 🔍 필터된 데이터 계산
+  const filteredData = sampleData.filter((item) => {
+    const matchesCategory = !categoryFilter || categoryFilter === item.category;
+    const matchesType = !typeFilter || typeFilter === item.type;
+    const matchesStatus = !statusFilter || statusFilter === item.status;
+    const matchesSearch =
+      !search || item.title.toLowerCase().includes(search.toLowerCase());
+
+    return matchesCategory && matchesType && matchesStatus && matchesSearch;
+  });
 
   return (
     <main className="bg-white min-h-screen">
@@ -124,27 +138,49 @@ const TempListPage = () => {
           <div className="flex flex-row w-5/10 gap-2">
             <CustomDropdown
               label="카테고리 선택"
-              options={["Beauty", "Food", "Fashion", "Lifestyle", "Tech"]}
-              onSelect={() => {}}
+              options={[
+                "전체",
+                "Beauty",
+                "Food",
+                "Fashion",
+                "Lifestyle",
+                "Tech",
+              ]}
+              onSelect={(value) => {
+                setCategoryFilter(value === "전체" ? null : value);
+              }}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
+
             <CustomDropdown
               label="유형 선택"
               options={[
+                "전체",
                 "트렌드 리포트",
                 "SNS 캠페인 사례",
                 "광고 분석",
                 "브랜드 전략",
               ]}
-              onSelect={() => {}}
+              onSelect={(value) =>
+                setTypeFilter(value === "전체" ? null : value)
+              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
+
             <CustomDropdown
               label="상태"
-              options={["검토 대기", "작성 중", "피드백 반영 중", "작성 완료"]}
-              onSelect={() => {}}
+              options={[
+                "전체",
+                "검토 대기",
+                "작성 중",
+                "피드백 반영 중",
+                "작성 완료",
+              ]}
+              onSelect={(value) =>
+                setStatusFilter(value === "전체" ? null : value)
+              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -168,58 +204,55 @@ const TempListPage = () => {
           </div>
         </div>
         <div className="border-t-2 border-gray-500 py-3">
-          {sampleData.map((item) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-[40px_50px_3fr_0.5fr_0.5fr_0.7fr_0.7fr_70px_80px] gap-x-6 py-3 items-center text-sm text-gray-700"
-            >
-              <div className="text-center font-semibold">{item.id}</div>
-
-              <div>
-                <Image
-                  src={"/icons/rectangle-gray.png"}
-                  alt="썸네일"
-                  width={40}
-                  height={40}
-                  className="rounded"
-                />
-              </div>
-
-              {/* 타이틀 */}
-              <div className="truncate font-semibold">{item.title}</div>
-
-              {/* 담당자 */}
-              <div className="text-sm text-gray-600">admin12</div>
-
-              <div>{item.category}</div>
-              <div>{item.type}</div>
-              <div>{item.date}</div>
-
-              {/* 상태 */}
+          {/* 리스트 렌더링 */}
+          {filteredData.length > 0 ? (
+            filteredData.map((item) => (
               <div
-                className={`text-xs font-semibold ${
-                  item.status === "작성 중"
-                    ? "text-yellow-500"
-                    : item.status === "검토 대기"
-                    ? "text-blue-500"
-                    : item.status === "피드백 반영 중"
-                    ? "text-black"
-                    : item.status === "작성 완료"
-                    ? "text-green-600"
-                    : ""
-                }`}
+                key={item.id}
+                className="grid grid-cols-[40px_50px_3fr_0.5fr_0.5fr_0.7fr_0.7fr_70px_80px] gap-x-6 py-3 items-center text-sm text-gray-700"
               >
-                {item.status}
+                <div className="text-center font-semibold">{item.id}</div>
+                <div>
+                  <Image
+                    src="/images/Category-1.jpg"
+                    alt="썸네일"
+                    width={40}
+                    height={40}
+                    className="w-10 aspect-[3/4] rounded"
+                  />
+                </div>
+                <div className="truncate font-semibold">{item.title}</div>
+                <div className="text-sm text-gray-600">admin12</div>
+                <div>{item.category}</div>
+                <div>{item.type}</div>
+                <div>{item.date}</div>
+                <div
+                  className={`text-xs font-semibold ${
+                    item.status === "작성 중"
+                      ? "text-yellow-500"
+                      : item.status === "검토 대기"
+                      ? "text-blue-500"
+                      : item.status === "피드백 반영 중"
+                      ? "text-black"
+                      : item.status === "작성 완료"
+                      ? "text-green-600"
+                      : ""
+                  }`}
+                >
+                  {item.status}
+                </div>
+                <div className="flex items-center gap-3">
+                  <FiEdit2 className="cursor-pointer w-4 h-4" />
+                  <FiTrash2 className="cursor-pointer w-4 h-4" />
+                  <FiShare2 className="cursor-pointer w-4 h-4 text-gray-500" />
+                </div>
               </div>
-
-              {/* 아이콘 */}
-              <div className="flex items-center gap-3">
-                <FiEdit2 className="cursor-pointer w-4 h-4" />
-                <FiTrash2 className="cursor-pointer w-4 h-4" />
-                <FiShare2 className="cursor-pointer w-4 h-4 text-gray-500" />
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-6 text-gray-400 text-sm">
+              조건에 맞는 콘텐츠가 없습니다.
             </div>
-          ))}
+          )}
         </div>
 
         {/* 페이지네이션 */}
