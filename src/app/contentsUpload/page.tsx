@@ -80,7 +80,7 @@ const UploadPage: React.FC = () => {
                 onChange={handleImageUpload}
               />
               <label htmlFor="image-upload">
-                <div className="absolute right-0 bottom-0 bg-gray-600 text-white px-6 py-3 rounded cursor-pointer text-center">
+                <div className="absolute right-0 bottom-0 bg-[#555555] text-white px-6 py-3 rounded-lg cursor-pointer text-center">
                   이미지 업로드
                 </div>
               </label>
@@ -144,18 +144,18 @@ const UploadPage: React.FC = () => {
             <div className="flex gap-4 mt-5 justify-between">
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="border border-gray-400 px-6 py-3 rounded cursor-pointer"
+                className="border hover:bg-gray-100 active:shadow-md transition border-gray-300  px-6 py-3 rounded-lg cursor-pointer"
               >
                 임시 저장
               </button>
               <div className="flex gap-3">
                 <button
-                  className="bg-gray-600 text-white px-6 py-3 rounded cursor-pointer"
+                  className="bg-[#555555] text-white px-6 py-3 rounded-lg cursor-pointer"
                   onClick={() => setShowBookingPopup(true)}
                 >
                   업로드 예약
                 </button>
-                <button className="bg-[#FF4545] text-white px-6 py-3 rounded font-bold cursor-pointer">
+                <button className="bg-[#FF4545] text-white px-6 py-3 rounded-lg font-bold cursor-pointer">
                   업로드
                 </button>
               </div>
