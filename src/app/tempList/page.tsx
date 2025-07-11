@@ -16,7 +16,6 @@ const sampleData: AdminContentItem[] = [
     id: 24,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "작성 중",
     visibility: "공개",
@@ -27,7 +26,6 @@ const sampleData: AdminContentItem[] = [
     id: 23,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     status: "작성 중",
     visibility: "공개",
@@ -38,7 +36,6 @@ const sampleData: AdminContentItem[] = [
     id: 22,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Food",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "작성 중",
     visibility: "공개",
@@ -49,7 +46,6 @@ const sampleData: AdminContentItem[] = [
     id: 21,
     title: "건강한 아침 식사 아이디어:에너지 충전을 위한 메뉴",
     category: "Fashion",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "작성 중",
     visibility: "공개",
@@ -60,7 +56,6 @@ const sampleData: AdminContentItem[] = [
     id: 20,
     title: "건강한 라이프스타일을 위한 스트레스 관리 방법",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     status: "검토 대기",
     visibility: "공개",
@@ -71,7 +66,6 @@ const sampleData: AdminContentItem[] = [
     id: 19,
     title: "창의성을 끌어올리는 방법:아이디어 발생 기술",
     category: "Tech",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "작성 완료",
     visibility: "공개",
@@ -82,7 +76,6 @@ const sampleData: AdminContentItem[] = [
     id: 18,
     title: "자연 속에서 힐링하는 베스트 트레킹 여행지 5선",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "피드백 반영 중",
     visibility: "공개",
@@ -93,7 +86,6 @@ const sampleData: AdminContentItem[] = [
     id: 17,
     title: "자기 계발의 시작:5가지 효과적인 습관",
     category: "Lifestyle",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "작성 완료",
     visibility: "비공개",
@@ -106,17 +98,15 @@ const TempListPage = () => {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const router = useRouter();
 
   const filteredData = sampleData.filter((item) => {
     const matchesCategory = !categoryFilter || categoryFilter === item.category;
-    const matchesType = !typeFilter || typeFilter === item.type;
     const matchesStatus = !statusFilter || statusFilter === item.status;
     const matchesSearch =
       !search || item.title.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesType && matchesStatus && matchesSearch;
+    return matchesCategory && matchesStatus && matchesSearch;
   });
 
   const enhancedData = filteredData.map((item) => ({
@@ -138,7 +128,7 @@ const TempListPage = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-5/10 gap-2">
+          <div className="flex flex-row w-3/10 gap-2">
             <CustomDropdown
               label="카테고리 선택"
               options={[
@@ -155,21 +145,7 @@ const TempListPage = () => {
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
-            <CustomDropdown
-              label="유형 선택"
-              options={[
-                "전체",
-                "트렌드 리포트",
-                "SNS 캠페인 사례",
-                "광고 분석",
-                "브랜드 전략",
-              ]}
-              onSelect={(value) =>
-                setTypeFilter(value === "전체" ? null : value)
-              }
-              buttonClassName="rounded-lg"
-              className="text-gray-500"
-            />
+
             <CustomDropdown
               label="상태"
               options={[
@@ -215,7 +191,6 @@ const TempListPage = () => {
             "title",
             "author",
             "category",
-            "type",
             "date",
             "status",
             "actions",
@@ -226,7 +201,6 @@ const TempListPage = () => {
             "3fr",
             "0.5fr",
             "0.5fr",
-            "0.7fr",
             "0.7fr",
             "70px",
             "80px",

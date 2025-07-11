@@ -13,7 +13,6 @@ import AdminContentTable, {
 
 interface ContentItem extends AdminContentItem {
   category: string;
-  type: string;
   date: string;
   time: string;
   visibility: "공개" | "비공개";
@@ -24,7 +23,6 @@ const sampleData: ContentItem[] = [
     id: 24,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "11:30",
     visibility: "공개",
@@ -34,7 +32,6 @@ const sampleData: ContentItem[] = [
     id: 23,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     time: "13:30",
     visibility: "공개",
@@ -44,7 +41,6 @@ const sampleData: ContentItem[] = [
     id: 22,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Food",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "20:30",
     visibility: "공개",
@@ -54,7 +50,6 @@ const sampleData: ContentItem[] = [
     id: 21,
     title: "건강한 아침 식사 아이디어:에너지 충전을 위한 메뉴",
     category: "Fashion",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "12:30",
     visibility: "공개",
@@ -64,7 +59,6 @@ const sampleData: ContentItem[] = [
     id: 20,
     title: "건강한 라이프스타일을 위한 스트레스 관리 방법",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     time: "14:30",
     visibility: "공개",
@@ -74,7 +68,6 @@ const sampleData: ContentItem[] = [
     id: 19,
     title: "창의성을 끌어올리는 방법:아이디어 발생 기술",
     category: "Tech",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "18:20",
     visibility: "공개",
@@ -84,7 +77,6 @@ const sampleData: ContentItem[] = [
     id: 18,
     title: "자연 속에서 힐링하는 베스트 트레킹 여행지 5선",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "19:30",
     visibility: "공개",
@@ -94,7 +86,6 @@ const sampleData: ContentItem[] = [
     id: 17,
     title: "자기 계발의 시작:5가지 효과적인 습관",
     category: "Lifestyle",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     time: "18:30",
     visibility: "비공개",
@@ -107,20 +98,16 @@ const ScheduledUploadPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null); // ✅ 추가
 
   const filteredData = sampleData.filter((item) => {
     const matchesCategory =
       !selectedCategory || item.category === selectedCategory;
-    const matchesType = !selectedType || item.type === selectedType; // ✅ 추가
 
     const matchesSearch =
       !search ||
       item.title.includes(search) ||
-      item.category.includes(search) ||
-      item.type.includes(search);
-
-    return matchesCategory && matchesType && matchesSearch;
+      item.category.includes(search) ;
+    return matchesCategory  && matchesSearch;
   });
 
   return (
@@ -135,7 +122,7 @@ const ScheduledUploadPage = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-4/10 gap-2">
+          <div className="flex flex-row w-3/20">
             <CustomDropdown
               label="카테고리 선택"
               options={[
@@ -149,21 +136,6 @@ const ScheduledUploadPage = () => {
               onSelect={(value) => {
                 setSelectedCategory(value === "전체" ? null : value);
               }}
-              buttonClassName="rounded-lg"
-              className="text-gray-500"
-            />
-            <CustomDropdown
-              label="유형 선택"
-              options={[
-                "전체",
-                "트렌드 리포트",
-                "SNS 캠페인 사례",
-                "광고 분석",
-                "브랜드 전략",
-              ]}
-              onSelect={(value) =>
-                setSelectedType(value === "전체" ? null : value)
-              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -184,7 +156,7 @@ const ScheduledUploadPage = () => {
           <div className="w-[14%]">
             <CustomDropdown
               label="업로드 예정 순"
-              options={["업로드 예정 순"]}
+              options={["업로드 예정 순","작성일 순"]}
               onSelect={() => {}}
               buttonClassName="border-0"
               className="text-gray-500"
@@ -207,7 +179,6 @@ const ScheduledUploadPage = () => {
             "title", // 제목
             "author", // 담당자
             "category", // 카테고리
-            "type", // 유형
             "date", // 날짜
             "time", // 시간
             "actions", // 액션
@@ -218,7 +189,6 @@ const ScheduledUploadPage = () => {
             "3fr", // 제목
             "1fr", // 담당자
             "1fr", // 카테고리
-            "1fr", // 유형
             "1fr", // 날짜
             "1fr", // 시간
             "90px", // 액션 버튼

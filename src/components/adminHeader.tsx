@@ -27,7 +27,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
       </Link>
 
       {/* 오른쪽 아이콘 + 이름 */}
-      <div className="absolute right-4 sm:right-10 lg:relative flex items-center lg:gap-3">
+      <div className="absolute right-4 sm:right-10 lg:relative flex items-center gap-1 lg:gap-3">
         <Image
           src="/icons/bell-bt.png"
           alt="Notification"

@@ -9,7 +9,6 @@ import StatusSelectModal from "@/components/statusSelectModal";
 
 const UploadPage: React.FC = () => {
   const [category, setCategory] = useState("카테고리 선택");
-  const [type, setType] = useState("유형 선택");
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [status, setStatus] = useState("");
@@ -88,7 +87,7 @@ const UploadPage: React.FC = () => {
               </div>
 
               {/* 썸네일 (대표 이미지 포함) */}
-              <div className="w-full flex gap-1 mb-4 relative">
+              <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {selectedImages.map((url, i) => (
                   <img
                     key={i}
@@ -138,7 +137,7 @@ const UploadPage: React.FC = () => {
                 onChange={handleImageUpload}
               />
               <label htmlFor="image-upload">
-                <div className="absolute right-0 bottom-0 bg-[#555555] text-white px-6 py-3 rounded-lg cursor-pointer text-center">
+                <div className="absolute right-0 bottom-0 bg-[#555555] text-white text-medium lg:text-base px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer text-center">
                   이미지 업로드
                 </div>
               </label>
@@ -146,7 +145,7 @@ const UploadPage: React.FC = () => {
           </div>
 
           {/* 오른쪽 입력 영역 */}
-          <div className="flex-1 flex flex-col justify-between">
+          <div className=" flex-1 flex flex-col justify-between">
             <div>
               <input
                 type="text"
@@ -159,22 +158,11 @@ const UploadPage: React.FC = () => {
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-black mb-6 pb-1.5 sm:text-xl placeholder:text-gray-400"
               />
 
-              <div className="place-self-end text-gray-500 flex flex-row w-[60%] gap-2 mb-6">
+              <div className="place-self-end text-gray-500 flex flex-row w-[35%] gap-2 mb-6">
                 <CustomDropdown
                   label={category}
                   options={["Beauty", "Fashion", "Food", "Lifestyle", "Tech"]}
                   onSelect={setCategory}
-                  buttonClassName="rounded-lg"
-                />
-                <CustomDropdown
-                  label={type}
-                  options={[
-                    "마케팅 트렌드",
-                    "브랜드 사례",
-                    "Food",
-                    "Lifestyle",
-                  ]}
-                  onSelect={setType}
                   buttonClassName="rounded-lg"
                 />
               </div>
@@ -191,21 +179,21 @@ const UploadPage: React.FC = () => {
             </div>
 
             {/* 하단 버튼 */}
-            <div className="flex gap-4 mt-5 justify-between">
+            <div className="text-medium lg:text-base flex gap-4 mt-5 justify-between">
               <button
                 onClick={() => setShowStatusModal(true)}
-                className="border hover:bg-gray-100 active:shadow-md transition border-gray-300 px-6 py-3 rounded-lg cursor-pointer"
+                className="border hover:bg-gray-100 active:shadow-md transition border-gray-300 px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
               >
                 임시 저장
               </button>
               <div className="flex gap-3">
                 <button
-                  className="bg-[#555555] text-white px-6 py-3 rounded-lg cursor-pointer"
+                  className="bg-[#555555] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
                   onClick={() => setShowBookingPopup(true)}
                 >
                   업로드 예약
                 </button>
-                <button className="bg-[#FF4545] text-white px-6 py-3 rounded-lg font-bold cursor-pointer">
+                <button className="bg-[#FF4545] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-bold cursor-pointer">
                   업로드
                 </button>
               </div>

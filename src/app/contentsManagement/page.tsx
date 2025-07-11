@@ -16,7 +16,6 @@ const sampleData: AdminContentItem[] = [
     id: 24,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "공개",
@@ -26,7 +25,6 @@ const sampleData: AdminContentItem[] = [
     id: 23,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "공개",
@@ -36,7 +34,6 @@ const sampleData: AdminContentItem[] = [
     id: 22,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
     category: "Food",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "공개",
@@ -46,7 +43,6 @@ const sampleData: AdminContentItem[] = [
     id: 21,
     title: "건강한 아침 식사 아이디어:에너지 충전을 위한 메뉴",
     category: "Fashion",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "공개",
@@ -56,7 +52,6 @@ const sampleData: AdminContentItem[] = [
     id: 20,
     title: "건강한 라이프스타일을 위한 스트레스 관리 방법",
     category: "Beauty",
-    type: "브랜드 사례",
     date: "2025/05/10",
     status: "임시저장",
     visibility: "공개",
@@ -66,7 +61,6 @@ const sampleData: AdminContentItem[] = [
     id: 19,
     title: "창의성을 끌어올리는 방법:아이디어 발생 기술",
     category: "Tech",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "공개",
@@ -76,7 +70,6 @@ const sampleData: AdminContentItem[] = [
     id: 18,
     title: "자연 속에서 힐링하는 베스트 트레킹 여행지 5선",
     category: "Beauty",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "예약됨",
     visibility: "공개",
@@ -86,7 +79,6 @@ const sampleData: AdminContentItem[] = [
     id: 17,
     title: "자기 계발의 시작:5가지 효과적인 습관",
     category: "Lifestyle",
-    type: "마케팅 트렌드",
     date: "2025/05/10",
     status: "게시 완료",
     visibility: "비공개",
@@ -98,13 +90,12 @@ const ContentManagementPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const router = useRouter();
 
   const filteredData = sampleData.filter((item) => {
-    const matchCategory = !selectedCategory || item.category === selectedCategory;
-    const matchType = !selectedType || item.type === selectedType;
+    const matchCategory =
+      !selectedCategory || item.category === selectedCategory;
     const matchStatus = !selectedStatus || item.status === selectedStatus;
     const matchSearch =
       !search ||
@@ -112,7 +103,7 @@ const ContentManagementPage = () => {
       item.category?.includes(search) ||
       item.type?.includes(search);
 
-    return matchCategory && matchType && matchStatus && matchSearch;
+    return matchCategory && matchStatus && matchSearch;
   });
 
   return (
@@ -128,25 +119,30 @@ const ContentManagementPage = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-5/10 gap-2">
+          <div className="flex flex-row w-3/10 gap-2 ">
             <CustomDropdown
               label="카테고리 선택"
-              options={["전체", "Beauty", "Food", "Fashion", "Lifestyle", "Tech"]}
-              onSelect={(value) => setSelectedCategory(value === "전체" ? null : value)}
+              options={[
+                "전체",
+                "Beauty",
+                "Food",
+                "Fashion",
+                "Lifestyle",
+                "Tech",
+              ]}
+              onSelect={(value) =>
+                setSelectedCategory(value === "전체" ? null : value)
+              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
-            <CustomDropdown
-              label="유형 선택"
-              options={["전체", "마케팅 트렌드", "브랜드 사례"]}
-              onSelect={(value) => setSelectedType(value === "전체" ? null : value)}
-              buttonClassName="rounded-lg"
-              className="text-gray-500"
-            />
+
             <CustomDropdown
               label="상태"
               options={["전체", "임시저장", "게시 완료", "예약됨"]}
-              onSelect={(value) => setSelectedStatus(value === "전체" ? null : value)}
+              onSelect={(value) =>
+                setSelectedStatus(value === "전체" ? null : value)
+              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -164,7 +160,6 @@ const ContentManagementPage = () => {
             "image",
             "title",
             "category",
-            "type",
             "date",
             "status",
             "actions",
@@ -175,7 +170,6 @@ const ContentManagementPage = () => {
             "50px",
             "3.9fr",
             "1fr",
-            "1.3fr",
             "1fr",
             "1fr",
             "60px",

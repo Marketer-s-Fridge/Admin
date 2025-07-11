@@ -15,7 +15,7 @@ const AdminSearchInput: React.FC<AdminSearchInputProps> = ({
   placeholder = "검색",
 }) => {
   return (
-    <div className="relative w-full sm:w-2/5 lg:w-1/3">
+    <div className="relative w-full sm:w-2/5 lg:w-4/10">
       <input
         type="text"
         value={value}

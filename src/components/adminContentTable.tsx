@@ -30,7 +30,6 @@ export interface AdminContentItem {
   onDelete?: () => void;
   onShare?: () => void;
   onClickRow?: () => void;
-
 }
 
 interface AdminContentTableProps {
@@ -64,7 +63,6 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             gridTemplateColumns: gridTemplate,
             gap: "1rem",
           }}
-          
         >
           {columnLabels.map((label, i) => (
             <div key={i} className="text-center ">
@@ -111,7 +109,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                 return (
                   <div key={col}>
                     <Image
-                    //   src={item.image"}
+                      //   src={item.image"}
                       src={"/images/Category-1.jpg"}
                       alt="썸네일"
                       width={40}
@@ -134,7 +132,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                 );
               case "email":
                 return (
-                  <div key={col} className="truncate">
+                  <div key={col} className="text-center truncate">
                     {item.email}
                   </div>
                 );
@@ -159,9 +157,17 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
               case "category":
                 return <div key={col}>{item.category}</div>;
               case "type":
-                return <div key={col}>{item.type}</div>;
+                return (
+                  <div key={col} className="text-center">
+                    {item.type}
+                  </div>
+                );
               case "date":
-                return <div key={col}>{item.date}</div>;
+                return (
+                  <div key={col} className="text-center">
+                    {item.date}
+                  </div>
+                );
               case "time":
                 return <div key={col}>{item.time}</div>;
               case "views":
@@ -186,7 +192,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                 return (
                   <div
                     key={col}
-                    className={`text-xs font-semibold ${
+                    className={`text-center text-xs font-semibold ${
                       item.status === "작성 중" ||
                       item.status === "답변 임시저장"
                         ? "text-yellow-500"

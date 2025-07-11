@@ -142,7 +142,7 @@ const InquiryRepliesPage = () => {
       <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
         {/* 필터 */}
         <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
-          <div className="flex flex-row w-4/11 gap-2">
+          <div className="flex flex-row w-3/10 gap-2">
             <CustomDropdown
               label="답변 처리 상태"
               options={[
