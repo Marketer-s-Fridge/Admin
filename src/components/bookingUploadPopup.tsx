@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "@/styles/bookingUploadPopup.css"; // ← 이걸로 모듈 말고 글로벌로!
+import "@/styles/bookingUploadPopup.css";
 import TimeDropdown from "./timeDropdown";
 
 interface BookingUploadPopupProps {
@@ -25,67 +25,67 @@ export const BookingUploadPopup: React.FC<BookingUploadPopupProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-      <div className="bg-white w-[720px] rounded-xl p-10 flex gap-5">
-        {/* 왼쪽: 달력 */}
-        <div className="flex flex-col">
-          <h2 className="text-2xl font-bold mb-8">날짜 및 시간 선택</h2>
-          <div className="flex flex-row gap-10">
-            <div className="w-1/2">
-              <Calendar
-                onChange={(value) => {
-                  if (value instanceof Date) {
-                    setSelectedDate(value);
-                  }
-                }}
-                value={selectedDate}
-                locale="ko"
-                calendarType="gregory"
-                next2Label={null}
-                prev2Label={null}
-                formatDay={(locale, date) => String(date.getDate())}
-                formatShortWeekday={(_, date) =>
-                  ["일", "월", "화", "수", "목", "금", "토"][date.getDay()]
+    <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50 px-4">
+      <div className="bg-white w-full sm:max-w-[600px] lg:max-w-[720px] rounded-xl p-6 sm:p-8 lg:p-10">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-6 sm:mb-8">
+          날짜 및 시간 선택
+        </h2>
+
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
+          {/* 왼쪽: 캘린더 */}
+          <div className="w-full lg:w-1/2">
+            <Calendar
+              onChange={(value) => {
+                if (value instanceof Date) {
+                  setSelectedDate(value);
                 }
-                tileClassName={({ date, view }) => {
-                  if (
-                    view === "month" &&
-                    date.getTime() < new Date().setHours(0, 0, 0, 0)
-                  ) {
-                    return "past-date";
-                  }
-                  return "";
-                }}
+              }}
+              value={selectedDate}
+              locale="ko"
+              calendarType="gregory"
+              next2Label={null}
+              prev2Label={null}
+              formatDay={(locale, date) => String(date.getDate())}
+              formatShortWeekday={(_, date) =>
+                ["일", "월", "화", "수", "목", "금", "토"][date.getDay()]
+              }
+              tileClassName={({ date, view }) => {
+                if (
+                  view === "month" &&
+                  date.getTime() < new Date().setHours(0, 0, 0, 0)
+                ) {
+                  return "past-date";
+                }
+                return "";
+              }}
+            />
+          </div>
+
+          {/* 오른쪽: 날짜/시간/버튼 */}
+          <div className="flex-1 flex flex-col justify-between">
+            <div className="flex flex-col gap-4 text-gray-500">
+              <input
+                type="text"
+                readOnly
+                value={format(selectedDate, "yyyy.MM.dd", { locale: ko })}
+                className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm sm:text-base"
               />
+              <TimeDropdown value={selectedTime} onSelect={setSelectedTime} />
             </div>
 
-            {/* 오른쪽: 날짜/시간 확인 및 버튼 */}
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="flex flex-col gap-4 text-gray-500">
-                <input
-                  type="text"
-                  readOnly
-                  value={format(selectedDate, "yyyy.MM.dd", { locale: ko })}
-                  className=" border-gray-300 border-1 rounded-lg px-3 py-2.5"
-                />
-                  <TimeDropdown value={selectedTime} onSelect={setSelectedTime} />
-
-              </div>
-
-              <div className="flex gap-4 h-10 text-nowrap justify-end mt-10">
-                <button
-                  onClick={onClose}
-                  className="border border-gray-300 px-6 py-2 rounded text-gray-800 cursor-pointer"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={handleConfirm}
-                  className="bg-[#FF4545] px-6 py-2 rounded text-white font-bold cursor-pointer"
-                >
-                  업로드 예약
-                </button>
-              </div>
+            <div className="flex gap-4 justify-end mt-8 sm:mt-10 text-sm sm:text-base">
+              <button
+                onClick={onClose}
+                className="cursor-pointer hover:bg-gray-100 border border-gray-300 px-4 sm:px-6 py-2 rounded-md text-gray-800"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="cursor-pointer bg-[#FF4545] px-4 sm:px-6 py-2 rounded-md text-white font-bold"
+              >
+                업로드 예약
+              </button>
             </div>
           </div>
         </div>

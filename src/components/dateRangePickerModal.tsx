@@ -153,32 +153,6 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
         </div>
         <div className="grid grid-cols-7 gap-1 text-sm text-gray-800 w-full">
           {days.map((date, idx) => {
-            const isStart = date?.toDateString() === startDate?.toDateString();
-            const isEnd = date?.toDateString() === endDate?.toDateString();
-            const isBetween =
-              !!date &&
-              startDate &&
-              endDate &&
-              date > startDate &&
-              date < endDate;
-
-            <div
-              key={idx}
-              className={`h-8 flex items-center justify-center cursor-pointer
-               ${isStart ? "bg-red-500 text-white rounded-l-full" : ""}
-               ${isEnd ? "bg-red-500 text-white rounded-r-full" : ""}
-               ${isBetween ? "bg-red-100 text-red-600" : ""}
-               ${
-                 !isStart && !isEnd && !isBetween
-                   ? "hover:bg-gray-100 rounded-full"
-                   : ""
-               }
-             `}
-              onClick={() => date && handleDateClick(date)}
-            >
-              {date ? date.getDate() : ""}
-            </div>;
-
             const isSelected =
               !!date &&
               (date.toDateString() === startDate?.toDateString() ||
@@ -209,11 +183,11 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-center">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-[90%] max-w-3xl">
-        <div className="flex w-full gap-6">
-          {/* 왼쪽 빠른 선택 */}
-          <div className="flex flex-col gap-3">
+    <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-center px-2">
+      <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-3xl">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* 빠른 선택 */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex flex-col gap-3">
             {quickRanges.map((label) => (
               <label key={label} className="flex items-center gap-2">
                 <input
@@ -226,24 +200,32 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
             ))}
           </div>
 
-          {/* 오른쪽 달력 */}
+          {/* 달력 */}
           <div className="flex flex-col gap-4 flex-1">
-            <div className="flex gap-8 justify-center">
-              {renderCalendar(monthOffset)}
-              {renderCalendar(monthOffset + 1)}
+            <div className="flex justify-center gap-4">
+              {/* 모바일/태블릿에선 하나만, lg 이상이면 2개 */}
+              <div className="block lg:hidden w-full">
+                {renderCalendar(monthOffset)}
+              </div>
+              <div className="hidden lg:block w-full">
+                {renderCalendar(monthOffset)}
+              </div>
+              <div className="hidden lg:block w-full">
+                {renderCalendar(monthOffset + 1)}
+              </div>
             </div>
 
-            {/* 하단 버튼 */}
-            <div className="flex w-1/2 place-self-end gap-3 mt-6">
+            {/* 버튼 */}
+            <div className="flex gap-3 mt-6 justify-end lg:justify-end">
               <button
                 onClick={onClose}
-                className="w-1/2 px-6 py-3 border rounded-lg border-gray-300 text-gray-700 hover:bg-gray-100"
+                className="cursor-pointer w-1/2 sm:w-40 px-4 py-2 border rounded-lg border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 취소
               </button>
               <button
                 onClick={onClose}
-                className="w-1/2 px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600"
+                className="cursor-pointer w-1/2 sm:w-40 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600"
               >
                 선택 완료
               </button>

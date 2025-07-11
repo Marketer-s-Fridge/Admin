@@ -97,7 +97,23 @@ const sampleData: AdminContentItem[] = [
 const ContentManagementPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const router = useRouter();
+
+  const filteredData = sampleData.filter((item) => {
+    const matchCategory = !selectedCategory || item.category === selectedCategory;
+    const matchType = !selectedType || item.type === selectedType;
+    const matchStatus = !selectedStatus || item.status === selectedStatus;
+    const matchSearch =
+      !search ||
+      item.title.includes(search) ||
+      item.category?.includes(search) ||
+      item.type?.includes(search);
+
+    return matchCategory && matchType && matchStatus && matchSearch;
+  });
 
   return (
     <main className="bg-white min-h-screen">
@@ -115,27 +131,22 @@ const ContentManagementPage = () => {
           <div className="flex flex-row w-5/10 gap-2">
             <CustomDropdown
               label="카테고리 선택"
-              options={["Beauty", "Food", "Fashion", "Lifestyle", "Tech"]}
-              onSelect={() => {}}
+              options={["전체", "Beauty", "Food", "Fashion", "Lifestyle", "Tech"]}
+              onSelect={(value) => setSelectedCategory(value === "전체" ? null : value)}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
             <CustomDropdown
               label="유형 선택"
-              options={[
-                "트렌드 리포트",
-                "SNS 캠페인 사례",
-                "광고 분석",
-                "브랜드 전략",
-              ]}
-              onSelect={() => {}}
+              options={["전체", "마케팅 트렌드", "브랜드 사례"]}
+              onSelect={(value) => setSelectedType(value === "전체" ? null : value)}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
             <CustomDropdown
               label="상태"
-              options={["임시 저장", "게시 완료"]}
-              onSelect={() => {}}
+              options={["전체", "임시저장", "게시 완료", "예약됨"]}
+              onSelect={(value) => setSelectedStatus(value === "전체" ? null : value)}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -144,7 +155,7 @@ const ContentManagementPage = () => {
 
         {/* ✅ 공통 테이블 컴포넌트 */}
         <AdminContentTable
-          data={sampleData.map((item) => ({
+          data={filteredData.map((item) => ({
             ...item,
             onClickRow: () => router.push("/contentsUpload"),
           }))}

@@ -106,6 +106,22 @@ const ScheduledUploadPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null); // ✅ 추가
+
+  const filteredData = sampleData.filter((item) => {
+    const matchesCategory =
+      !selectedCategory || item.category === selectedCategory;
+    const matchesType = !selectedType || item.type === selectedType; // ✅ 추가
+
+    const matchesSearch =
+      !search ||
+      item.title.includes(search) ||
+      item.category.includes(search) ||
+      item.type.includes(search);
+
+    return matchesCategory && matchesType && matchesSearch;
+  });
 
   return (
     <main className="bg-white min-h-screen">
@@ -122,20 +138,32 @@ const ScheduledUploadPage = () => {
           <div className="flex flex-row w-4/10 gap-2">
             <CustomDropdown
               label="카테고리 선택"
-              options={["Beauty", "Food", "Fashion", "Lifestyle", "Tech"]}
-              onSelect={() => {}}
+              options={[
+                "전체",
+                "Beauty",
+                "Food",
+                "Fashion",
+                "Lifestyle",
+                "Tech",
+              ]}
+              onSelect={(value) => {
+                setSelectedCategory(value === "전체" ? null : value);
+              }}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
             <CustomDropdown
               label="유형 선택"
               options={[
+                "전체",
                 "트렌드 리포트",
                 "SNS 캠페인 사례",
                 "광고 분석",
                 "브랜드 전략",
               ]}
-              onSelect={() => {}}
+              onSelect={(value) =>
+                setSelectedType(value === "전체" ? null : value)
+              }
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
@@ -165,7 +193,7 @@ const ScheduledUploadPage = () => {
         </div>
 
         <AdminContentTable
-          data={sampleData.map((item) => ({
+          data={filteredData.map((item) => ({
             ...item,
             author: "admin12",
             onEdit: () => console.log("Edit", item.id),

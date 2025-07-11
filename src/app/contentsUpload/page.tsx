@@ -1,7 +1,7 @@
 "use client";
 
 import AdminHeader from "@/components/adminHeader";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import AdminCategoryBar from "../../components/adminCategoryBar";
 import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
@@ -18,13 +18,20 @@ const UploadPage: React.FC = () => {
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState("");
-
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     x: number;
     y: number;
     index: number | null;
   }>({ visible: false, x: 0, y: 0, index: null });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const urls = Array.from(files).map((file) => URL.createObjectURL(file));
+      setSelectedImages((prev) => [...prev, ...urls]);
+    }
+  };
 
   const handleDeleteImage = () => {
     if (contextMenu.index !== null) {
@@ -35,33 +42,30 @@ const UploadPage: React.FC = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const urls = Array.from(files).map((file) => URL.createObjectURL(file));
-      setSelectedImages((prev) => [...prev, ...urls]);
-    }
-  };
+  // 마우스 오른쪽 클릭 시 메뉴 보이기
+  const handleContextMenu = (e: React.MouseEvent, index: number) => {
+    e.preventDefault(); // 기본 컨텍스트 메뉴를 막고
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.right + window.scrollX - 10;
+    const y = rect.bottom + window.scrollY - 10;
 
-  useEffect(() => {
-    const handleClick = () => {
-      if (contextMenu.visible) {
-        setContextMenu({ visible: false, x: 0, y: 0, index: null });
-      }
-    };
-    window.addEventListener("click", handleClick);
-    return () => window.removeEventListener("click", handleClick);
-  }, [contextMenu.visible]);
+    setContextMenu({
+      visible: true,
+      x,
+      y,
+      index,
+    });
+  };
 
   return (
     <div className="bg-white min-h-screen">
       <AdminHeader />
       <AdminCategoryBar />
 
-      <main className="mx-auto px-[10%] sm:px-[15%] py-12">
+      <main className="mx-auto px-[5%] sm:px-[10%] lg:px-[15%] py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* 왼쪽 이미지 영역 */}
-          <div className="flex w-[400px] flex-col justify-between">
+          <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
               {/* 대표 이미지 */}
               <div className="relative w-full flex justify-center mb-4">
@@ -72,7 +76,7 @@ const UploadPage: React.FC = () => {
                       className="w-full aspect-[3/4] rounded object-cover"
                       alt="대표 이미지"
                     />
-                    <div className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                    <div className="absolute top-3 right-3 bg-white/60 text-gray text-xs px-3 py-0.5 rounded-full">
                       1 / {selectedImages.length}
                     </div>
                   </>
@@ -94,21 +98,7 @@ const UploadPage: React.FC = () => {
                       setModalImageUrl(url);
                       setShowImageModal(true);
                     }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      setSelectedIndex(i);
-
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = rect.right + window.scrollX - 10;
-                      const y = rect.bottom + window.scrollY - 10;
-
-                      setContextMenu({
-                        visible: true,
-                        x,
-                        y,
-                        index: i,
-                      });
-                    }}
+                    onContextMenu={(e) => handleContextMenu(e, i)} // 오른쪽 클릭 시 컨텍스트 메뉴
                     className={`w-[16%] aspect-[3/4] rounded object-cover cursor-pointer ${
                       selectedIndex === i ? "ring-2 ring-red-500" : ""
                     }`}
@@ -125,7 +115,7 @@ const UploadPage: React.FC = () => {
                     left: `${contextMenu.x}px`,
                   }}
                   onClick={handleDeleteImage}
-                  onContextMenu={(e) => e.preventDefault()}
+                  onContextMenu={(e) => e.preventDefault()} // 삭제 버튼에서 우클릭 막기
                 >
                   <img
                     src="/icons/trash-2.png"
@@ -133,7 +123,6 @@ const UploadPage: React.FC = () => {
                     className="w-4 h-4 mr-2"
                   />
                   <span className="text-gray-700 font-semibold">삭제</span>
-                  <span className="ml-5 text-gray-700">Delete</span>
                 </div>
               )}
             </div>
@@ -173,21 +162,13 @@ const UploadPage: React.FC = () => {
               <div className="place-self-end text-gray-500 flex flex-row w-[60%] gap-2 mb-6">
                 <CustomDropdown
                   label={category}
-                  options={[
-                    "카테고리 선택",
-                    "Beauty",
-                    "Fashion",
-                    "Food",
-                    "Lifestyle",
-                    "Tech",
-                  ]}
+                  options={["Beauty", "Fashion", "Food", "Lifestyle", "Tech"]}
                   onSelect={setCategory}
                   buttonClassName="rounded-lg"
                 />
                 <CustomDropdown
                   label={type}
                   options={[
-                    "유형 선택",
                     "마케팅 트렌드",
                     "브랜드 사례",
                     "Food",

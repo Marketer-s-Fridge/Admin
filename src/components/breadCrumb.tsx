@@ -13,7 +13,7 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <div className="flex px-4 sm:px-6 xl:px-[15%] text-xs pt-8 text-gray-500">
+    <div className="flex px-4 sm:px-10 lg:px-[15%] text-xs pt-8 text-gray-500">
       {items.map((item, index) => (
         <div key={index} className="flex items-center">
           {item.href ? (

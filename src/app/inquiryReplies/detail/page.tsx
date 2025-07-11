@@ -32,8 +32,8 @@ const InquiryDetailPage: React.FC = () => {
           { label: "문의" }, // 현재 페이지는 링크 없이 표시
         ]}
       />
-      <main className="w-full flex justify-center px-4">
-        <div className="w-full px-[5%] lg:px-[22.5%] mt-10">
+      <main className="w-full flex justify-center ">
+        <div className="w-full px-4 sm:px-10 lg:px-[22.5%] mt-10">
           {/* 문의 카테고리 */}
           <p className="text-lg font-bold mb-2">[ 기술적 문제 ]</p>
           {/* 유저 정보 */}

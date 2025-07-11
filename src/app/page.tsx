@@ -1,120 +1,144 @@
 "use client";
 import Image from "next/image";
-import React from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 
 export default function DashboardPage() {
-  const router = useRouter(); // ✅ 라우터 훅 사용
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const menuItems = [
+    {
+      label: "콘텐츠 업로드",
+      icon: "/icons/upload.png",
+      path: "contentsUpload",
+    },
+    {
+      label: "콘텐츠 관리",
+      icon: "/icons/menu.png",
+      path: "contentsManagement",
+    },
+    {
+      label: "임시 저장 리스트",
+      icon: "/icons/archive.png",
+      path: "tempList",
+    },
+    {
+      label: "업로드 예약",
+      icon: "/icons/clock.png",
+      path: "scheduledUpload",
+    },
+    {
+      label: "문의 답변 관리",
+      icon: "/icons/mdi_comment-question-outline.png",
+      path: "inquiryReplies",
+    },
+    {
+      label: "통계 및 분석",
+      icon: "/icons/entypo_bar-graph.png",
+      path: "analytics",
+    },
+  ];
 
   return (
     <div className="bg-white">
-      <AdminHeader />
-      <div className="min-h-screen flex bg-white">
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
+
+      {/* 오버레이 메뉴 (모바일용) */}
+      <div
+        className={`fixed inset-0 z-50 transition-all duration-300 ${
+          menuOpen ? "bg-black/40" : "bg-transparent pointer-events-none"
+        }`}
+      >
+        <aside
+          className={`bg-white w-64 p-6 space-y-8 h-full shadow-md transform transition-all duration-300 ease-in-out ${
+            menuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <button
+            className="text-right block ml-auto mb-4"
+            onClick={() => setMenuOpen(false)}
+          >
+            ✕
+          </button>
+          <ul className="space-y-10 text-sm font-bold">
+            {menuItems.map((item) => (
+              <li
+                key={item.label}
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => {
+                  router.push(item.path);
+                  setMenuOpen(false);
+                }}
+              >
+                <Image
+                  alt={item.label}
+                  src={item.icon}
+                  width={24}
+                  height={24}
+                  className="w-5 aspect-square"
+                />
+                {item.label}
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </div>
+
+      <div className="min-h-screen flex flex-col lg:flex-row bg-white">
         {/* Sidebar */}
-        <aside className=" bg-[#f9f9f9] border-r border-gray-200 py-20 px-4 space-y-10 text-sm w-[15%]">
-          <ul className="space-y-9 font-bold">
-            <li
-              className="flex items-center gap-3.5 cursor-pointer"
-              onClick={() => router.push("contentsUpload")} // ✅ 클릭 시 이동
-            >
-              <Image
-                alt="콘텐츠 업로드"
-                src="/icons/upload.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>
-              콘텐츠 업로드
-            </li>
-            <li
-              className="flex items-center gap-3.5 cursor-pointer"
-              onClick={() => router.push("contentsManagement")} // ✅ 클릭 시 이동
-            >
-              <Image
-                alt="콘텐츠 관리"
-                src="/icons/menu.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>{" "}
-              콘텐츠 관리
-            </li>
-            <li
-              className="flex items-center gap-3.5 cursor-pointer"
-              onClick={() => router.push("tempList")} // ✅ 클릭 시 이동
-            >
-              <Image
-                alt="임시 저장 리스트"
-                src="/icons/archive.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>{" "}
-              임시 저장 리스트
-            </li>
-            <li
-              className="flex items-center gap-3.5 cursor-pointer"
-              onClick={() => router.push("scheduledUpload")} // ✅ 클릭 시 이동
-            >
-              <Image
-                alt="업로드 에약"
-                src="/icons/clock.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>{" "}
-              업로드 예약
-            </li>
-            <li
-              className="flex items-center gap-3.5 cursor-pointer"
-              onClick={() => router.push("inquiryReplies")} // ✅ 클릭 시 이동
-            >
-              <Image
-                alt="문의 답변 관리"
-                src="/icons/mdi_comment-question-outline.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>
-              문의 답변 관리
-            </li>
-            <li className="flex items-center gap-3.5 cursor-pointer">
-              <Image
-                alt="통계 및 분석"
-                src="/icons/entypo_bar-graph.png"
-                width={30}
-                height={30}
-                className="w-5 aspect-square"
-              ></Image>
-              통계 및 분석
-            </li>
+        <aside className="hidden lg:block bg-[#f9f9f9] border-r border-gray-200 py-6 px-4 text-sm w-full lg:w-[15%]">
+          <ul className="space-y-8 font-bold flex lg:flex-col flex-wrap justify-between">
+            {menuItems.map(({ label, icon, path }, idx) => (
+              <li
+                key={idx}
+                className="flex items-center gap-3.5 cursor-pointer"
+                onClick={() => path && router.push(path)}
+              >
+                <Image
+                  alt={label}
+                  src={icon}
+                  width={30}
+                  height={30}
+                  className="w-5 aspect-square"
+                />
+                {label}
+              </li>
+            ))}
           </ul>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 pl-10 pr-[15%] bg-white">
+        <main className="flex-1 px-4 sm:px-10 lg:pl-10 lg:pr-[15%] bg-white">
           {/* Summary */}
-
-          <div className=" grid grid-cols-3 items-center justify-center self-center gap-4 text-center text-xl font-semibold my-[8%]">
-            <div className="">
-              게시물 수<div className="text-red-500 text-3xl mt-1">435</div>
+          <div className="grid grid-cols-3 gap-6 text-center text-base sm:text-lg lg:text-xl font-semibold my-20 lg:my-20">
+            <div>
+              게시물 수
+              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
+                435
+              </div>
             </div>
             <div>
               문의사항
-              <div className="text-red-500 text-3xl mt-1">1</div>
+              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
+                1
+              </div>
             </div>
             <div>
-              회원 수<div className="text-red-500 text-3xl mt-1">1,654</div>
+              회원 수
+              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
+                1,654
+              </div>
             </div>
           </div>
 
           <div className="bg-gray-200 w-full h-0.5"></div>
 
-          <div className="grid grid-cols-2 gap-10 my-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10">
             {/* Recent Uploads */}
             <div>
-              <h2 className="text-xl font-bold mb-4">최근 업로드</h2>
+              <h2 className="text-lg sm:text-xl font-bold mb-4">최근 업로드</h2>
               <ul className="space-y-3 text-sm">
                 {[
                   {
@@ -150,10 +174,14 @@ export default function DashboardPage() {
                 ].map((item, index) => (
                   <li
                     key={index}
-                    className="grid grid-cols-[100px_1fr_auto] items-center gap-3"
+                    className="grid grid-cols-[80px_1fr_auto] sm:grid-cols-[100px_1fr_auto] items-center gap-3"
                   >
-                    <span className="font-bold">{item.category}</span>
-                    <span className="truncate">{item.title}</span>
+                    <span className="font-bold text-xs sm:text-sm">
+                      {item.category}
+                    </span>
+                    <span className="truncate text-xs sm:text-sm">
+                      {item.title}
+                    </span>
                     <span className="text-xs text-gray-500">{item.date}</span>
                   </li>
                 ))}
@@ -162,30 +190,31 @@ export default function DashboardPage() {
 
             {/* Visitor Count */}
             <div>
-              <h2 className="text-xl font-bold mb-4">방문자 수</h2>
-              <div className="flex gap-4">
-                <div className="bg-red-100 p-4 rounded-md text-center w-32">
-                  <div className="text-xs mb-1">오늘 방문자 수</div>
-                  <div className="text-xl font-bold">12</div>
-                </div>
-                <div className="bg-red-100 p-4 rounded-md text-center w-32">
-                  <div className="text-xs mb-1">이번 달 방문자 수</div>
-                  <div className="text-xl font-bold">210</div>
-                </div>
-                <div className="bg-red-100 p-4 rounded-md text-center w-32">
-                  <div className="text-xs mb-1">전체 방문자 수</div>
-                  <div className="text-xl font-bold">3,456</div>
-                </div>
+              <h2 className="text-lg sm:text-xl font-bold mb-4">방문자 수</h2>
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { label: "오늘 방문자 수", value: 12 },
+                  { label: "이번 달 방문자 수", value: 210 },
+                  { label: "전체 방문자 수", value: 3456 },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="bg-red-100 p-4 rounded-md text-center w-[30%] min-w-[90px]"
+                  >
+                    <div className="text-xs mb-1">{item.label}</div>
+                    <div className="text-lg sm:text-xl font-bold">
+                      {item.value}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="mt-6 text-xs text-gray-500">
                 2025.05.16 24:00 기준
               </div>
-              {/* 그래프는 임의 처리 */}
-              <div className="mt-2 w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400">
+              <div className="mt-2 w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs">
                 [방문자 수 그래프 자리]
               </div>
-
-              <button className="bg-red-500 w-full mt-5 text-white px-6 py-4 rounded-lg text-sm font-semibold">
+              <button className="bg-red-500 w-full mt-5 text-white px-6 py-3 rounded-lg text-sm font-semibold">
                 홈으로 돌아가기
               </button>
             </div>
