@@ -1,20 +1,20 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
-import { FiPaperclip } from "react-icons/fi";
-import Link from "next/link";
+import AdminContentTable, {
+  AdminContentItem,
+} from "@/components/adminContentTable";
 
-interface InquiryItem {
-  id: number;
+interface InquiryItem extends AdminContentItem {
   name: string;
   email: string;
   type: string;
-  date: string;
-  status: "답변 완료" | "답변 임시저장" | "미답변" | "삭제 변경";
   responder: string;
   hasAttachment?: boolean;
 }
@@ -29,6 +29,8 @@ const sampleData: InquiryItem[] = [
     status: "답변 완료",
     responder: "Admin12",
     hasAttachment: true,
+    title: "Sohn678",
+    image: "",
   },
   {
     id: 6,
@@ -38,6 +40,8 @@ const sampleData: InquiryItem[] = [
     date: "2025/05/10",
     status: "답변 임시저장",
     responder: "Admin12",
+    title: "luckyseven",
+    image: "",
   },
   {
     id: 5,
@@ -47,6 +51,8 @@ const sampleData: InquiryItem[] = [
     date: "2025/05/10",
     status: "미답변",
     responder: "Admin12",
+    title: "saraminjoa",
+    image: "",
   },
   {
     id: 4,
@@ -56,6 +62,8 @@ const sampleData: InquiryItem[] = [
     date: "2025/05/10",
     status: "삭제 변경",
     responder: "Admin12",
+    title: "vividsun44",
+    image: "",
   },
   {
     id: 3,
@@ -66,6 +74,8 @@ const sampleData: InquiryItem[] = [
     status: "답변 완료",
     responder: "Admin12",
     hasAttachment: true,
+    title: "springbloom57",
+    image: "",
   },
   {
     id: 2,
@@ -76,6 +86,8 @@ const sampleData: InquiryItem[] = [
     status: "답변 임시저장",
     responder: "Admin12",
     hasAttachment: true,
+    title: "banjjak",
+    image: "",
   },
   {
     id: 1,
@@ -85,11 +97,14 @@ const sampleData: InquiryItem[] = [
     date: "2025/05/10",
     status: "삭제 변경",
     responder: "Admin12",
+    title: "winterstorm",
+    image: "",
   },
 ];
 
-
 const InquiryRepliesPage = () => {
+  const router = useRouter();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
@@ -107,30 +122,25 @@ const InquiryRepliesPage = () => {
     setSortOrder(value);
   };
 
-  // ✅ 필터 및 정렬 적용
   const filteredData = sampleData
-  .filter((item) => {
-    const statusMatch =
-      !statusFilter || statusFilter === "전체" || item.status === statusFilter;
-    const typeMatch =
-      !typeFilter || typeFilter === "전체" || item.type === typeFilter;
-    return statusMatch && typeMatch;
-  })
-  .sort((a, b) => {
-    if (sortOrder === "최신순") {
-      return b.id - a.id;
-    } else {
-      return a.id - b.id;
-    }
-  });
+    .filter((item) => {
+      const statusMatch =
+        !statusFilter ||
+        statusFilter === "전체" ||
+        item.status === statusFilter;
+      const typeMatch =
+        !typeFilter || typeFilter === "전체" || item.type === typeFilter;
+      return statusMatch && typeMatch;
+    })
+    .sort((a, b) => (sortOrder === "최신순" ? b.id - a.id : a.id - b.id));
 
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader />
       <AdminCategoryBar />
 
-      <section className="px-[10%] sm:px-[15%] py-[3%]">
-        {/* 필터 & 검색 */}
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
+        {/* 필터 */}
         <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
           <div className="flex flex-row w-4/11 gap-2">
             <CustomDropdown
@@ -173,64 +183,33 @@ const InquiryRepliesPage = () => {
           </div>
         </div>
 
-        {/* 테이블 헤더 */}
-        <div className="grid grid-cols-[1fr_2.2fr_3.5fr_2fr_2fr_2fr_2fr] py-2 border-y-[2px] border-gray-500 font-bold text-sm text-gray-800">
-          <div className="text-center">문의번호</div>
-          <div className="text-center">문의자</div>
-          <div className="text-center">이메일</div>
-          <div className="text-center">문의 유형</div>
-          <div className="text-center">문의 날짜</div>
-          <div className="text-center">처리 상태</div>
-          <div className="text-center">답변자</div>
-        </div>
-
-        {/* 필터된 데이터 표시 */}
-        {filteredData.length > 0 ? (
-          filteredData.map((item) => (
-            <Link key={item.id} href={`/inquiryReplies/detail`} passHref>
-              <div className="grid grid-cols-[1fr_2.5fr_3.2fr_2fr_2fr_2fr_2fr] py-3 items-center text-sm text-gray-700 hover:bg-gray-50 cursor-pointer">
-                <div className="flex justify-center items-center font-semibold">
-                  {item.id}
-                </div>
-                <div className="flex justify-start items-center gap-1 mx-9">
-                  {item.hasAttachment && (
-                    <FiPaperclip className="text-gray-400 w-4 h-4" />
-                  )}
-                  {item.name}
-                </div>
-                <div className="flex justify-start items-center pl-12">
-                  {item.email}
-                </div>
-                <div className="flex justify-center items-center">
-                  {item.type}
-                </div>
-                <div className="flex justify-center items-center">
-                  {item.date}
-                </div>
-                <div
-                  className={`flex justify-start items-center font-semibold pl-10 ${
-                    item.status === "답변 완료"
-                      ? "text-green-600"
-                      : item.status === "답변 임시저장"
-                      ? "text-orange-400"
-                      : item.status === "미답변"
-                      ? "text-blue-500"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {item.status}
-                </div>
-                <div className="flex justify-center items-center">
-                  {item.responder}
-                </div>
-              </div>
-            </Link>
-          ))
-        ) : (
-          <div className="text-center py-6 text-gray-400 text-sm">
-            조건에 맞는 문의가 없습니다.
-          </div>
-        )}
+        {/* 공통 테이블 적용 */}
+        <AdminContentTable
+          data={filteredData.map((item) => ({
+            ...item,
+            onClickRow: () => router.push("/inquiryReplies/detail"),
+          }))}
+          columns={[
+            "id",
+            "name",
+            "email",
+            "type",
+            "date",
+            "status",
+            "responder",
+          ]}
+          columnWidths={["1fr", "2.2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
+          showHeader={true}
+          columnLabels={[
+            "문의번호",
+            "문의자",
+            "이메일",
+            "문의 유형",
+            "문의 날짜",
+            "처리 상태",
+            "답변자",
+          ]}
+        />
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-6">

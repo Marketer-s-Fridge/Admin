@@ -51,7 +51,7 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
   };
 
   return (
-    <div className="relative pl-[10%] sm:pl-[14.2%] w-full border-b-2 border-gray-300 text-lg font-semibold select-none">
+    <div className="relative px-4 sm:px-10 lg:px-[15%] w-full border-b-2 border-gray-300 text-lg font-semibold select-none">
       <div className="relative w-[180px]">
         <div
           className="flex flex-row justify-between items-center text-start px-3 py-2 bg-white cursor-pointer"

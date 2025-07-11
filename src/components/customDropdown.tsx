@@ -29,22 +29,27 @@ export default function CustomDropdown({
   };
 
   return (
-    <div className={clsx("relative w-full text-sm font-medium", className)}>
+    <div
+      className={clsx(
+        "relative w-full text-nowrap text-[12px] lg:text-sm ",
+        className
+      )}
+    >
       {/* 드롭다운 버튼 */}
       <div
         onClick={() => setIsOpen((prev) => !prev)}
         className={clsx(
-          "flex items-center justify-between w-full gap-2 px-4 py-2 border border-gray-300 bg-white cursor-pointer",
+          "min-w-30 flex items-center justify-between w-full py-2 border border-gray-300 bg-white cursor-pointer",
           buttonClassName
         )}
       >
-        <span>{selected}</span>
+        <span className="ml-3 lg:ml-4">{selected}</span>
         <Image
           src="/icons/down.png"
           alt="드롭다운 열기"
-          width={16}
-          height={16}
-          className=" w-5 h-5"
+          width={20}
+          height={20}
+          className="mr-3 lg:mr-4 relative w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 object-contain"
         />
       </div>
 
@@ -52,22 +57,22 @@ export default function CustomDropdown({
       {isOpen && (
         <div
           className={clsx(
-            "absolute top-0 left-0 w-full bg-white border border-gray-100 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto",
+            "min-w-30 absolute top-0 left-0 w-full bg-white border border-gray-100 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto",
             buttonClassName
           )}
         >
           {/* 현재 선택된 항목 표시 */}
           <div
-            className="flex justify-between items-center px-4 py-2 cursor-pointer"
+            className="flex justify-between items-center  py-2 cursor-pointer"
             onClick={() => setIsOpen(false)}
           >
-            <span>{selected}</span>
+            <span className="ml-3 lg:ml-4">{selected}</span>
             <Image
               alt="close"
               src="/icons/down.png"
               width={20}
               height={20}
-              className="w-5 h-5"
+              className="mr-3 lg:mr-4  w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5"
             />
           </div>
 

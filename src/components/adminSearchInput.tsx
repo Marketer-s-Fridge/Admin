@@ -15,21 +15,21 @@ const AdminSearchInput: React.FC<AdminSearchInputProps> = ({
   placeholder = "검색",
 }) => {
   return (
-    <div className="relative w-4/10">
+    <div className="relative w-full sm:w-2/5 lg:w-1/3">
       <input
         type="text"
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="border border-gray-300 rounded-lg px-3 py-1.5 w-full"
+        className="border border-gray-300 rounded-lg px-3 py-2 w-full text-[12px] lg:text-sm"
       />
       <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer">
         <Image
           src="/icons/search.png"
           alt="검색"
-          width={16}
-          height={16}
-          className="w-5 h-5"
+          width={20}
+          height={20}
+          className="w-4 h-4 sm:w-5 sm:h-5"
         />
       </button>
     </div>

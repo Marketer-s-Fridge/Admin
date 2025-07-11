@@ -5,12 +5,9 @@ import Link from "next/link";
 
 export default function AdminHeader() {
   return (
-    <header className="relative w-full border-b border-gray-300 py-4 flex justify-between items-center pl-[10%] pr-[4%] md:pl-[15%] md:pr-[6%]">
+    <header className="relative w-full border-b border-gray-300 py-4 flex justify-between items-center  pl-4 sm:pl-10 lg:pl-[15%]  pr-[4%] lg:pr-[6%]">
       {/* 로고 */}
-      <Link
-        href="/"
-        className="text-red-500 font-bold text-sm font-playfair"
-      >
+      <Link href="/" className="text-red-500 font-bold text-sm font-playfair">
         Marketer&apos;s Fridge
       </Link>
 

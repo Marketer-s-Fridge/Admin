@@ -1,26 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
-import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
+import AdminContentTable, {
+  AdminContentItem,
+} from "@/components/adminContentTable";
 
-interface ContentItem {
-  id: number;
-  title: string;
-  category: string;
-  type: string;
-  date: string;
-  status: string;
-  visibility: "공개" | "비공개";
-  image: string;
-}
-
-const sampleData: ContentItem[] = [
+const sampleData: AdminContentItem[] = [
   {
     id: 24,
     title: "뭐라고? 쿠션이 40가지나 된다고?!",
@@ -106,16 +97,16 @@ const sampleData: ContentItem[] = [
 const ContentManagementPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const router = useRouter();
 
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader />
       <AdminCategoryBar />
 
-      <section className="px-[10%] sm:px-[15%] py-[2%]">
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
         {/* 필터 & 검색 */}
-        <div className="flex flex-wrap gap-3 mb-4 justify-between ">
-          {/* 검색창 */}
+        <div className="flex flex-wrap gap-3 mb-4 justify-between">
           <AdminSearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -151,50 +142,35 @@ const ContentManagementPage = () => {
           </div>
         </div>
 
-        {/* 테이블 */}
-        <div className="border-t-2 border-gray-500 py-3">
-          {sampleData.map((item) => (
-            <div
-              key={item.id}
-              className="grid grid-cols-[40px_50px_3.9fr_1fr_1.3fr_1fr_1fr_60px_40px] gap-x-6 py-3 items-center text-sm text-gray-700"
-            >
-              <div className="text-center font-semibold">{item.id}</div>
-              <div>
-                <Image
-                  src="/icons/rectangle-gray.png"
-                  alt="썸네일"
-                  width={40}
-                  height={40}
-                  className="rounded"
-                />
-              </div>
-              <div className="truncate font-semibold">{item.title}</div>
-              <div>{item.category}</div>
-              <div>{item.type}</div>
-              <div>{item.date}</div>
-              <div
-                className={`text-xs ${
-                  item.status === "임시저장" || item.status === "예약됨"
-                    ? "text-gray-400"
-                    : ""
-                }`}
-              >
-                [{item.status}]
-              </div>
-              <div className="flex items-center gap-3">
-                <FiEdit2 className="cursor-pointer w-4 h-4" />
-                <FiTrash2 className="cursor-pointer w-4 h-4" />
-              </div>
-              <div
-                className={`${
-                  item.visibility === "비공개" ? "text-gray-400" : ""
-                }`}
-              >
-                {item.visibility}
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* ✅ 공통 테이블 컴포넌트 */}
+        <AdminContentTable
+          data={sampleData.map((item) => ({
+            ...item,
+            onClickRow: () => router.push("/contentsUpload"),
+          }))}
+          columns={[
+            "id",
+            "image",
+            "title",
+            "category",
+            "type",
+            "date",
+            "status",
+            "actions",
+            "visibility",
+          ]}
+          columnWidths={[
+            "40px",
+            "50px",
+            "3.9fr",
+            "1fr",
+            "1.3fr",
+            "1fr",
+            "1fr",
+            "60px",
+            "40px",
+          ]}
+        />
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-6">
