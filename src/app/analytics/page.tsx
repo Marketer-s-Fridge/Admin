@@ -6,6 +6,7 @@ import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
+import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
@@ -33,32 +34,32 @@ const AnalyticsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showCalendar, setShowCalendar] = useState(false);
   const [sortOption, setSortOption] = useState<string>("전체");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const filteredData = sampleData
-  .filter((item) => {
-    const keyword = search.toLowerCase();
-    return item.title.toLowerCase().includes(keyword);
-  })
-  .sort((a, b) => {
-    switch (sortOption) {
-      case "조회수 높은 순":
-        return b.views - a.views;
-      case "클릭수 높은 순":
-        return b.clicks - a.clicks;
-      case "반응수 높은 순":
-        return (
-          parseFloat(b.engagementRate) - parseFloat(a.engagementRate)
-        );
-      default:
-        return b.id - a.id; // 최신순
-    }
-  });
-
+    .filter((item) => {
+      const keyword = search.toLowerCase();
+      return item.title.toLowerCase().includes(keyword);
+    })
+    .sort((a, b) => {
+      switch (sortOption) {
+        case "조회수 높은 순":
+          return b.views - a.views;
+        case "클릭수 높은 순":
+          return b.clicks - a.clicks;
+        case "반응수 높은 순":
+          return parseFloat(b.engagementRate) - parseFloat(a.engagementRate);
+        default:
+          return b.id - a.id; // 최신순
+      }
+    });
 
   return (
     <main className="bg-white min-h-screen">
-      <AdminHeader />
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
+      {/* 오버레이 메뉴 (모바일용) */}
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
         <div className="flex flex-row gap-3 justify-between pb-[1.5%]">

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
+import MobileMenu from "@/components/mobileMenu";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -46,45 +47,7 @@ export default function DashboardPage() {
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
 
       {/* 오버레이 메뉴 (모바일용) */}
-      <div
-        className={`fixed inset-0 z-50 transition-all duration-300 ${
-          menuOpen ? "bg-black/40" : "bg-transparent pointer-events-none"
-        }`}
-      >
-        <aside
-          className={`bg-white w-64 p-6 space-y-8 h-full shadow-md transform transition-all duration-300 ease-in-out ${
-            menuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
-        >
-          <button
-            className="text-right block ml-auto mb-4"
-            onClick={() => setMenuOpen(false)}
-          >
-            ✕
-          </button>
-          <ul className="space-y-10 text-sm font-bold">
-            {menuItems.map((item) => (
-              <li
-                key={item.label}
-                className="flex items-center gap-3 cursor-pointer"
-                onClick={() => {
-                  router.push(item.path);
-                  setMenuOpen(false);
-                }}
-              >
-                <Image
-                  alt={item.label}
-                  src={item.icon}
-                  width={24}
-                  height={24}
-                  className="w-5 aspect-square"
-                />
-                {item.label}
-              </li>
-            ))}
-          </ul>
-        </aside>
-      </div>
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <div className="min-h-screen flex flex-col lg:flex-row bg-white">
         {/* Sidebar */}

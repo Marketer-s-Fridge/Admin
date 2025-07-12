@@ -7,6 +7,7 @@ import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
+import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
@@ -92,6 +93,7 @@ const ContentManagementPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const filteredData = sampleData.filter((item) => {
     const matchCategory =
@@ -108,8 +110,10 @@ const ContentManagementPage = () => {
 
   return (
     <main className="bg-white min-h-screen">
-      <AdminHeader />
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
+      {/* 오버레이 메뉴 (모바일용) */}
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
         {/* 필터 & 검색 */}

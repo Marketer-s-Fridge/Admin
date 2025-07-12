@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
+import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
@@ -109,6 +109,7 @@ const InquiryRepliesPage = () => {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"최신순" | "오래된 순">("최신순");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
@@ -136,8 +137,10 @@ const InquiryRepliesPage = () => {
 
   return (
     <main className="bg-white min-h-screen">
-      <AdminHeader />
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
+      {/* 오버레이 메뉴 (모바일용) */}
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
         {/* 필터 */}

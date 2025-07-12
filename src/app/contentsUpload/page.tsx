@@ -6,6 +6,7 @@ import AdminCategoryBar from "../../components/adminCategoryBar";
 import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
+import MobileMenu from "@/components/mobileMenu";
 
 const UploadPage: React.FC = () => {
   const [category, setCategory] = useState("카테고리 선택");
@@ -14,6 +15,7 @@ const UploadPage: React.FC = () => {
   const [status, setStatus] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState("");
@@ -58,8 +60,10 @@ const UploadPage: React.FC = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <AdminHeader />
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
+      {/* 오버레이 메뉴 (모바일용) */}
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <main className="mx-auto px-[5%] sm:px-[10%] lg:px-[15%] py-12">
         <div className="flex flex-col lg:flex-row gap-12">

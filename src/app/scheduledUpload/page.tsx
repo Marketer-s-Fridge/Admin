@@ -7,6 +7,7 @@ import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
+import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
@@ -98,22 +99,23 @@ const ScheduledUploadPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const filteredData = sampleData.filter((item) => {
     const matchesCategory =
       !selectedCategory || item.category === selectedCategory;
 
     const matchesSearch =
-      !search ||
-      item.title.includes(search) ||
-      item.category.includes(search) ;
-    return matchesCategory  && matchesSearch;
+      !search || item.title.includes(search) || item.category.includes(search);
+    return matchesCategory && matchesSearch;
   });
 
   return (
     <main className="bg-white min-h-screen">
-      <AdminHeader />
+      <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
+      {/* 오버레이 메뉴 (모바일용) */}
+      <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
         <div className="flex flex-wrap gap-3 mb-4 justify-between ">
@@ -156,7 +158,7 @@ const ScheduledUploadPage = () => {
           <div className="w-[14%]">
             <CustomDropdown
               label="업로드 예정 순"
-              options={["업로드 예정 순","작성일 순"]}
+              options={["업로드 예정 순", "작성일 순"]}
               onSelect={() => {}}
               buttonClassName="border-0"
               className="text-gray-500"
