@@ -1,4 +1,3 @@
-// components/common/AdminContentTable.tsx
 "use client";
 
 import React from "react";
