@@ -171,7 +171,7 @@ const ContentManagementPage = () => {
           ]}
           columnWidths={[
             "40px",
-            "50px",
+            "0.7fr",
             "3.9fr",
             "1fr",
             "1fr",

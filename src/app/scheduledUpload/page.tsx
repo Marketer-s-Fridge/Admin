@@ -124,7 +124,7 @@ const ScheduledUploadPage = () => {
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-3/20">
+          <div className="flex flex-row sm:w-3/20">
             <CustomDropdown
               label="카테고리 선택"
               options={[
@@ -144,7 +144,7 @@ const ScheduledUploadPage = () => {
           </div>
         </div>
 
-        <div className="flex py-3 px-3 justify-between">
+        <div className="flex py-3 px-1 sm:px-3 justify-between">
           <div className="flex items-center gap-4 ">
             <input type="checkbox" className="w-4 h-4 accent-gray-800" />
             <button className="text-sm text-black font-semibold cursor-pointer">
@@ -155,7 +155,7 @@ const ScheduledUploadPage = () => {
             </button>
           </div>
 
-          <div className="w-[14%]">
+          <div className="w-[1/4] sm:w-[14%]">
             <CustomDropdown
               label="업로드 예정 순"
               options={["업로드 예정 순", "작성일 순"]}
@@ -187,7 +187,7 @@ const ScheduledUploadPage = () => {
           ]}
           columnWidths={[
             "40px", // ✅ checkbox
-            "60px", // 썸네일
+            "0.7fr", // 썸네일
             "3fr", // 제목
             "1fr", // 담당자
             "1fr", // 카테고리

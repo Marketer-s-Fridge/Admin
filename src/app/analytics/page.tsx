@@ -108,7 +108,7 @@ const AnalyticsPage = () => {
             "clicks",
             "engagementRate",
           ]}
-          columnWidths={["0.7fr", "0.6fr", "3.4fr", "2fr", "2fr", "2fr", "2fr"]}
+          columnWidths={["0.7fr", "0.7fr", "3.4fr", "2fr", "2fr", "2fr", "2fr"]}
           columnLabels={[
             "번호",
             "",

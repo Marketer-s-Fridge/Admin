@@ -173,7 +173,7 @@ const TempListPage = () => {
             <p className="font-semibold">임시 저장본</p>
             <p className="text-xs">{filteredData.length}</p>
           </div>
-          <div className="w-[13%]">
+          <div className="w-1/4 sm:w-[13%]">
             <CustomDropdown
               label="최신 저장 순"
               options={["최신 저장 순", "오래된 순"]}
@@ -201,7 +201,7 @@ const TempListPage = () => {
           ]}
           columnWidths={[
             "40px",
-            "50px",
+            "0.7fr",
             "3fr",
             "0.5fr",
             "0.5fr",

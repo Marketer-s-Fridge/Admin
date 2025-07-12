@@ -50,7 +50,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
     columnWidths?.join(" ") || `repeat(${columns.length}, 1fr)`;
 
   return (
-    <div className="border-t-2 border-gray-500">
+    <div className="border-t-2 border-gray-500 text-nowrap">
       {/* ✅ 컬럼 헤더 */}
       {showHeader && columnLabels && (
         <div
@@ -61,21 +61,30 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             gap: "1rem",
           }}
         >
-          {columnLabels.map((label, i) => (
-            <div key={i} className="text-center">
-              {label}
-            </div>
-          ))}
+          {columnLabels.map((label, i) => {
+            if (label == "이메일") {
+              return (
+                <div key={i} className="truncate text-center">
+                  {label}
+                </div>
+              );
+            }
+            return (
+              <div key={i} className="text-center">
+                {label}
+              </div>
+            );
+          })}
         </div>
       )}
 
       {/* ✅ 데이터 렌더링 */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-scroll">
         {data.map((item) => (
           <div
             key={item.id}
             onClick={item.onClickRow}
-            className="cursor-pointer py-3 items-center text-[12px] sm:text-[12px] lg:text-sm hover:bg-gray-50 text-gray-700"
+            className="text-center cursor-pointer py-3 items-center text-[12px] sm:text-[12px] lg:text-sm hover:bg-gray-50 text-gray-700"
             style={{
               display: "grid",
               gridTemplateColumns: gridTemplate,
@@ -113,7 +122,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         alt="썸네일"
                         width={40}
                         height={40}
-                        className="rounded"
+                        className=" rounded"
                       />
                     </div>
                   );
@@ -121,7 +130,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                   return (
                     <div
                       key={col}
-                      className="truncate font-semibold flex items-center gap-1"
+                      className="truncate font-semibold flex text-left items-center gap-1 min-w-[100px]"
                     >
                       {item.hasAttachment && (
                         <FiPaperclip className="text-gray-400 w-4 h-4" />
@@ -131,13 +140,13 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                   );
                 case "email":
                   return (
-                    <div key={col} className="text-center truncate">
+                    <div key={col} className="truncate text-center">
                       {item.email}
                     </div>
                   );
                 case "author":
                   return (
-                    <div key={col} className="text-center">
+                    <div key={col} className="truncate text-center">
                       {item.author}
                     </div>
                   );

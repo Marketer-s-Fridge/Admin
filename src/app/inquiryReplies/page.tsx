@@ -201,7 +201,7 @@ const InquiryRepliesPage = () => {
             "status",
             "responder",
           ]}
-          columnWidths={["1fr", "2.2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
+          columnWidths={["1fr", "2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
           showHeader={true}
           columnLabels={[
             "문의번호",
