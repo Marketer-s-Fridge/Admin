@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 
@@ -8,20 +7,12 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { label: "콘텐츠 업로드", icon: "/icons/upload.png", path: "contentsUpload" },
-  { label: "콘텐츠 관리", icon: "/icons/menu.png", path: "contentsManagement" },
-  { label: "임시 저장 리스트", icon: "/icons/archive.png", path: "tempList" },
-  { label: "업로드 예약", icon: "/icons/clock.png", path: "scheduledUpload" },
-  {
-    label: "문의 답변 관리",
-    icon: "/icons/mdi_comment-question-outline.png",
-    path: "inquiryReplies",
-  },
-  {
-    label: "통계 및 분석",
-    icon: "/icons/entypo_bar-graph.png",
-    path: "analytics",
-  },
+  { label: "홈", path: "/" },
+  { label: "서비스 소개", path: "/service" },
+  { label: "카테고리", path: "/category" },
+  { label: "문의하기", path: "/contact" },
+  { label: "마이페이지", path: "/myPage" },
+  { label: "로그인 | 회원가입", path: "/login" },
 ];
 const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
   const router = useRouter();
@@ -53,13 +44,13 @@ const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
                 setMenuOpen(false);
               }}
             >
-              <Image
+              {/* <Image
                 alt={item.label}
                 src={item.icon}
                 width={24}
                 height={24}
                 className="w-5 aspect-square"
-              />
+              /> */}
               {item.label}
             </li>
           ))}
