@@ -11,7 +11,7 @@
     FROM node:18-bookworm-slim AS runner
     WORKDIR /app
     ENV NODE_ENV=production
-    ENV PORT=3001          # ✅ 관리자 포트 다르게
+    ENV PORT=3001          
     RUN useradd -m nextjs
     COPY --from=builder /app/.next/standalone ./
     COPY --from=builder /app/.next/static ./.next/static
