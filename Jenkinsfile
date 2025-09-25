@@ -8,7 +8,7 @@ pipeline {
   }
   stages {
     stage('Checkout'){ steps { checkout scm } }
-    stage('Build Image'){ steps { sh 'docker build -t $IMAGE:$TAG -f Dockerfile.admin .' } }
+    stage('Build Image'){ steps { sh 'docker build -t $IMAGE:$TAG -f Dockerfile .' } }
     stage('Push Image'){
       steps {
         withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_CRED',
