@@ -15,7 +15,7 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
 }) => {
   return (
-    <div className="flex justify-center items-center gap-8 mt-15 text-xs xs:mt-30 mb-0 sm:text-sm  text-gray-600">
+    <div className="flex justify-center items-center gap-2 my-15 text-xs xs:mt-30 md:mb-0 sm:text-sm  text-gray-600">
       <button
         className="cursor-pointer disabled:opacity-40"
         onClick={() => onPageChange(currentPage - 1)}
@@ -38,7 +38,7 @@ const Pagination: React.FC<PaginationProps> = ({
             page === currentPage
               ? " text-red-500 font-semibold"
               : "hover:text-black cursor-pointer"
-          }`}
+          } p-4`}
         >
           {page}
         </button>
