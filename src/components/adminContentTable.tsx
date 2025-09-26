@@ -88,6 +88,23 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             >
               {columns.map((col) => {
                 switch (col) {
+                  case "checkbox":
+                    return showCheckbox ? (
+                      <div key={col} className="flex justify-center">
+                        <input
+                          type="checkbox"
+                          
+                          className="w-4 h-4 accent-gray-800"
+                          checked={item.selected || false}
+                          onChange={(e) =>
+                            item.onSelectChange?.(e.target.checked)
+                          }
+                          onClick={(e) => e.stopPropagation()} // 체크만 되고 row 클릭은 막음
+                        />
+                      </div>
+                    ) : (
+                      <div key={col} />
+                    );
                   case "image":
                     return (
                       <div key={col}>
@@ -151,7 +168,11 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                       </div>
                     );
                   default:
-                    return <div key={col}>{(item as any)[col]}</div>;
+                    return (
+                      <div key={col}>
+                        {item[col as keyof AdminContentItem] as React.ReactNode}
+                      </div>
+                    );
                 }
               })}
             </div>
@@ -169,6 +190,19 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             className="flex gap-4 py-4 cursor-pointer"
             onClick={item.onClickRow}
           >
+            {/* 체크박스 (모바일 왼쪽) */}
+            {showCheckbox && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 accent-gray-800"
+                  checked={item.selected || false}
+                  onChange={(e) => item.onSelectChange?.(e.target.checked)}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+            )}
+
             {/* 썸네일 */}
             <div className="w-20 h-20 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden">
               <Image
