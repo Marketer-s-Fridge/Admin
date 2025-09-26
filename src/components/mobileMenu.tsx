@@ -7,13 +7,14 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { label: "홈", path: "/" },
-  { label: "서비스 소개", path: "/service" },
-  { label: "카테고리", path: "/category" },
-  { label: "문의하기", path: "/contact" },
-  { label: "마이페이지", path: "/myPage" },
-  { label: "로그인 | 회원가입", path: "/login" },
+  { label: "콘텐츠 업로드", path: "/contentsUpload" },
+  { label: "콘텐츠 관리", path: "/contentsManagement" },
+  { label: "임시 저장 리스트", path: "/tempList" },
+  { label: "업로드 예약", path: "/scheduledUpload" },
+  { label: "문의 답변 관리", path: "/inquiryReplies" },
+  { label: "통계 및 분석", path: "/analytics" },
 ];
+
 const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
   const router = useRouter();
 
