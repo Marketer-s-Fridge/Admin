@@ -144,7 +144,7 @@ export default function AdminCategoryBar({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setFocusedIndex(index)}
-                  className="px-[1px] py-[2px] cursor-pointer select-none"
+                  className="px-1 py-1 cursor-pointer select-none"
                 >
                   <div
                     className={`px-2 py-2 rounded-md transition-colors duration-150 ${

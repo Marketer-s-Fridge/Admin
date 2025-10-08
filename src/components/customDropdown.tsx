@@ -137,7 +137,7 @@ export default function CustomDropdown({
                 aria-selected={selected === opt}
                 onClick={() => handleSelect(opt)}
                 onMouseEnter={() => setFocusedIndex(index)}
-                className="px-[1px] py-[2px] cursor-pointer select-none"
+                className="px-1 py-1 cursor-pointer select-none"
               >
                 <div
                   className={clsx(
