@@ -134,14 +134,14 @@ const ScheduledUploadPage = () => {
       <AdminCategoryBar />
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
-        <div className="flex flex-wrap gap-3 mb-4 justify-between">
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
+        <div className="flex flex-row sm:flex-row gap-3 mb-4 justify-between">
           <AdminSearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row sm:w-3/20">
+          <div className="flex flex-row ">
             <CustomDropdown
               label="카테고리 선택"
               options={[

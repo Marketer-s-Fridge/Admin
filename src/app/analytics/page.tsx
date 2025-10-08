@@ -61,7 +61,7 @@ const AnalyticsPage = () => {
       {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
         <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
           <AdminSearchInput
             value={search}
@@ -85,7 +85,7 @@ const AnalyticsPage = () => {
               />
             </div>
 
-            <div className=" pl-2">
+            <div className="pl-2">
               <CustomDropdown2A11Y
                 label="클릭수 높은 순"
                 options={["클릭수 높은 순", "반응수 높은 순", "조회수 높은 순"]}

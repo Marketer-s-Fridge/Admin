@@ -143,10 +143,10 @@ const InquiryRepliesPage = () => {
       {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-10 lg:px-[15%] py-[3%]">
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
         {/* 필터 */}
-        <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
-          <div className="flex flex-row w-3/10 gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 justify-between pb-[1.5%]">
+          <div className="flex flex-row gap-2">
             <CustomDropdown
               label="답변 처리 상태"
               options={[
@@ -174,7 +174,7 @@ const InquiryRepliesPage = () => {
               className="text-gray-500"
             />
           </div>
-          <div className="flex">
+          <div className="flex justify-end">
             <CustomDropdown2
               label="최신순"
               options={["최신순", "오래된 순"]}

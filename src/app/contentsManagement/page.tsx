@@ -72,13 +72,13 @@ const ContentManagementPage = () => {
 
       <section className="relative px-4 sm:px-10 lg:px-[15%] py-[4%]">
         {/* 🔍 필터 & 검색 */}
-        <div className=" flex flex-wrap gap-3 mb-4 justify-between">
+        <div className=" flex flex-row sm:flex-row gap-3 mb-4 justify-between">
           <AdminSearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-3/10 gap-2">
+          <div className="flex flex-row gap-2">
             <CustomDropdown
               label="카테고리 선택"
               options={[

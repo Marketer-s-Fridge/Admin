@@ -127,13 +127,13 @@ const TempListPage = () => {
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
-        <div className="flex flex-wrap gap-3 mb-4 justify-between ">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between ">
           <AdminSearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-5/10 gap-2">
+          <div className="flex flex-row gap-2">
             <CustomDropdown
               label="카테고리 선택"
               options={[
@@ -169,7 +169,7 @@ const TempListPage = () => {
           </div>
         </div>
 
-        <div className="flex py-3 px-3 justify-between">
+        <div className="flex py-3 px-2 sm:px-3 justify-between">
           <div className="flex flex-row gap-2 items-center">
             <p className="font-semibold">임시 저장본</p>
             <p className="text-xs">{filteredData.length}</p>
