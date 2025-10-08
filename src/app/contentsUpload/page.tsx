@@ -13,6 +13,7 @@ import { PostRequestDto } from "@/features/posts/types";
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
+import Image from "next/image";
 
 const UploadPage: React.FC = () => {
   const [category, setCategory] = useState("카테고리 선택");
@@ -336,7 +337,7 @@ const UploadPage: React.FC = () => {
             className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs flex justify-center items-center"
             onClick={() => setShowImageModal(false)}
           >
-            <img
+            <Image
               src={modalImageUrl}
               alt="미리보기"
               className="max-w-[70%] max-h-[70%] rounded shadow-lg"

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 
 interface StatusSelectModalProps {
@@ -44,7 +45,7 @@ const StatusSelectModal: React.FC<StatusSelectModalProps> = ({
                 />
                 {/* 체크 시 아이콘 이미지 띄우기 */}
                 {selected === status && (
-                  <img
+                  <Image
                     src="/icons/check.png"
                     alt="체크"
                     className="absolute inset-0 w-3 h-3 m-auto pointer-events-none"

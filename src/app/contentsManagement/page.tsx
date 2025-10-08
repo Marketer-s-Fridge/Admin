@@ -9,7 +9,6 @@ import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
 import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
-  AdminContentItem,
 } from "@/components/adminContentTable";
 import { fetchPosts } from "@/features/posts/api/postsApi";
 import { PostResponseDto } from "@/features/posts/types";

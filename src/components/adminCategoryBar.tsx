@@ -69,7 +69,7 @@ export default function AdminCategoryBar({
       const route = routeMap[item];
       if (route) router.push(route);
     },
-    [onSelect, router]
+    [onSelect, router, routeMap]
   );
 
   // ✅ 키보드 접근성

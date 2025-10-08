@@ -40,7 +40,7 @@ export const createDraft = async (dto: PostRequestDto): Promise<PostResponseDto>
   const res = await api.post<PostResponseDto>("/posts/drafts", dto);
   return res.data;
 };
-3
+
 // ✅ 임시/예약 글 업데이트
 export const updateDraft = async (
   id: number,
