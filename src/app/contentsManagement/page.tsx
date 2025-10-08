@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
@@ -11,119 +11,75 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
-
-const sampleData: AdminContentItem[] = [
-  {
-    id: 24,
-    title: "뭐라고? 쿠션이 40가지나 된다고?!",
-    category: "Beauty",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "공개",
-    image: "/images/sample1.png",
-  },
-  {
-    id: 23,
-    title: "뭐라고? 쿠션이 40가지나 된다고?!",
-    category: "Beauty",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "공개",
-    image: "/images/sample1.png",
-  },
-  {
-    id: 22,
-    title: "뭐라고? 쿠션이 40가지나 된다고?!",
-    category: "Food",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "공개",
-    image: "/images/sample1.png",
-  },
-  {
-    id: 21,
-    title: "건강한 아침 식사 아이디어:에너지 충전을 위한 메뉴",
-    category: "Fashion",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "공개",
-    image: "/images/sample2.png",
-  },
-  {
-    id: 20,
-    title: "건강한 라이프스타일을 위한 스트레스 관리 방법",
-    category: "Beauty",
-    date: "2025/05/10",
-    status: "임시저장",
-    visibility: "공개",
-    image: "/images/sample3.png",
-  },
-  {
-    id: 19,
-    title: "창의성을 끌어올리는 방법:아이디어 발생 기술",
-    category: "Tech",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "공개",
-    image: "/images/sample4.png",
-  },
-  {
-    id: 18,
-    title: "자연 속에서 힐링하는 베스트 트레킹 여행지 5선",
-    category: "Beauty",
-    date: "2025/05/10",
-    status: "예약됨",
-    visibility: "공개",
-    image: "/images/sample5.png",
-  },
-  {
-    id: 17,
-    title: "자기 계발의 시작:5가지 효과적인 습관",
-    category: "Lifestyle",
-    date: "2025/05/10",
-    status: "게시 완료",
-    visibility: "비공개",
-    image: "/images/sample6.png",
-  },
-];
+import { fetchPosts } from "@/features/posts/api/postsApi";
+import { PostResponseDto } from "@/features/posts/types";
 
 const ContentManagementPage = () => {
+  const [posts, setPosts] = useState<PostResponseDto[]>([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const filteredData = sampleData.filter((item) => {
+  // ✅ 게시물 데이터 불러오기
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchPosts();
+        setPosts(data);
+        console.log("✅ 게시물 불러오기 성공:", data);
+      } catch (err) {
+        console.error("게시물 불러오기 실패:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPosts();
+  }, []);
+
+  // ✅ 필터 + 검색
+  const filteredData = posts.filter((item) => {
     const matchCategory =
       !selectedCategory || item.category === selectedCategory;
-    const matchStatus = !selectedStatus || item.status === selectedStatus;
+    const matchStatus =
+      !selectedStatus ||
+      (item.postStatus === "DRAFT" && selectedStatus === "임시저장") ||
+      (item.postStatus === "PUBLISHED" && selectedStatus === "게시 완료") ||
+      (item.postStatus === "SCHEDULED" && selectedStatus === "예약됨");
     const matchSearch =
       !search ||
       item.title.includes(search) ||
       item.category?.includes(search) ||
-      item.type?.includes(search);
+      item.content?.includes(search);
 
     return matchCategory && matchStatus && matchSearch;
   });
+
+  // ✅ 페이지네이션 (10개씩 예시)
+  const itemsPerPage = 10;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
-      {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
-        {/* 필터 & 검색 */}
-        <div className="flex flex-wrap gap-3 mb-4 justify-between">
+      <section className="relative px-4 sm:px-10 lg:px-[15%] py-[4%]">
+        {/* 🔍 필터 & 검색 */}
+        <div className=" flex flex-wrap gap-3 mb-4 justify-between">
           <AdminSearchInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
 
-          <div className="flex flex-row w-3/10 gap-2 ">
+          <div className="flex flex-row w-3/10 gap-2">
             <CustomDropdown
               label="카테고리 선택"
               options={[
@@ -153,42 +109,74 @@ const ContentManagementPage = () => {
           </div>
         </div>
 
-        {/* ✅ 공통 테이블 컴포넌트 */}
-        <AdminContentTable
-          data={filteredData.map((item) => ({
-            ...item,
-            onClickRow: () => router.push("/contentsUpload"),
-          }))}
-          columns={[
-            "id",
-            "image",
-            "title",
-            "category",
-            "date",
-            "status",
-            "actions",
-            "visibility",
-          ]}
-          columnWidths={[
-            "40px",
-            "0.7fr",
-            "3.9fr",
-            "1fr",
-            "1fr",
-            "1fr",
-            "60px",
-            "40px",
-          ]}
-        />
+        {/* 📋 게시물 테이블 */}
+        {loading ? (
+          <div className="text-center text-gray-500 mt-10">로딩 중...</div>
+        ) : filteredData.length === 0 ? (
+          <div className=" text-center text-gray-500 mt-10">
+            게시물이 없습니다.
+          </div>
+        ) : (
+          <AdminContentTable
+            data={currentData.map((item) => ({
+              id: item.id,
+              title: item.title,
+              category: item.category,
+              date: new Date(item.createdAt).toLocaleDateString("ko-KR"),
+              status:
+                item.postStatus === "DRAFT"
+                  ? "임시저장"
+                  : item.postStatus === "SCHEDULED"
+                  ? "예약됨"
+                  : "게시 완료",
+              visibility: "공개", // 필요시 item.visibility 로 변경
+              image: item.images?.[0] || "/images/sample1.png",
+              onClickRow: () => router.push(`/contents/${item.id}`),
+            }))}
+            columns={[
+              "id",
+              "image",
+              "title",
+              "category",
+              "date",
+              "status",
+              "actions",
+              "visibility",
+            ]}
+            // columnWidths={[
+            //   "40px",
+            //   "0.7fr",
+            //   "3.9fr",
+            //   "1fr",
+            //   "1fr",
+            //   "1fr",
+            //   "60px",
+            //   "40px",
+            // ]}
+            showHeader={true}
+            columnLabels={[
+              "번호",
+              "",
+              "콘텐츠",
+              "카테고리",
+              "게시일자",
+              "처리상태",
+              "",
+              "공개유무",
+            ]}
+          />
+        )}
 
         {/* 페이지네이션 */}
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={3}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
+        {filteredData.length > 0 && (
+          <div className="flex justify-center mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+        )}
       </section>
     </main>
   );

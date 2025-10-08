@@ -7,16 +7,24 @@ import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
+import { PostRequestDto } from "@/features/posts/types";
+
+// ✅ React Query 훅 import
+import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
+import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
+import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
 
 const UploadPage: React.FC = () => {
   const [category, setCategory] = useState("카테고리 선택");
-  const [showBookingPopup, setShowBookingPopup] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [title, setTitle] = useState("");
+  const [subTitle, setSubTitle] = useState("");
+  const [content, setContent] = useState("");
   const [status, setStatus] = useState("");
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-
+  const [showBookingPopup, setShowBookingPopup] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState("");
   const [contextMenu, setContextMenu] = useState<{
@@ -26,6 +34,12 @@ const UploadPage: React.FC = () => {
     index: number | null;
   }>({ visible: false, x: 0, y: 0, index: null });
 
+  // ✅ React Query 훅들
+  const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
+  const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
+  const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
+
+  // ✅ 이미지 업로드 (미리보기용)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
@@ -34,6 +48,7 @@ const UploadPage: React.FC = () => {
     }
   };
 
+  // ✅ 이미지 삭제
   const handleDeleteImage = () => {
     if (contextMenu.index !== null) {
       const newImages = [...selectedImages];
@@ -43,34 +58,138 @@ const UploadPage: React.FC = () => {
     }
   };
 
-  // 마우스 오른쪽 클릭 시 메뉴 보이기
+  // ✅ 우클릭 시 메뉴 표시
   const handleContextMenu = (e: React.MouseEvent, index: number) => {
-    e.preventDefault(); // 기본 컨텍스트 메뉴를 막고
+    e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = rect.right + window.scrollX - 10;
-    const y = rect.bottom + window.scrollY - 10;
-
     setContextMenu({
       visible: true,
-      x,
-      y,
+      x: rect.right + window.scrollX - 10,
+      y: rect.bottom + window.scrollY - 10,
       index,
     });
+  };
+
+  // ✅ 임시 저장 (React Query)
+  const handleSaveDraft = () => {
+    if (!title.trim() || !category || category === "카테고리 선택") {
+      alert("제목과 카테고리를 입력해주세요.");
+      return;
+    }
+
+    const dto: PostRequestDto = {
+      title,
+      subTitle,
+      category,
+      type: "ARTICLE",
+      content,
+      images: selectedImages,
+      postStatus: "DRAFT",
+    };
+
+    saveDraft(
+      { id: 0, dto }, // id: 0은 새 초안 생성으로 처리 (백엔드에 따라 수정 가능)
+      {
+        onSuccess: (res) => {
+          alert("임시 저장 완료! 📝");
+          console.log("✅ 임시 저장 성공:", res);
+        },
+        onError: (err) => {
+          console.error("임시 저장 실패:", err);
+          alert("임시 저장 중 오류가 발생했습니다.");
+        },
+      }
+    );
+  };
+
+  // ✅ 게시물 업로드 (React Query)
+  const handleUpload = () => {
+    if (!title.trim() || !content.trim()) {
+      alert("제목과 내용을 입력해주세요!");
+      return;
+    }
+
+    const dto: PostRequestDto = {
+      title,
+      subTitle,
+      category,
+      type: "ARTICLE",
+      content,
+      images: selectedImages,
+      postStatus: "PUBLISHED",
+    };
+
+    uploadPost(dto, {
+      onSuccess: (res) => {
+        alert("게시물이 성공적으로 업로드되었습니다! 🎉");
+        console.log("✅ 업로드 성공:", res);
+        resetForm();
+      },
+      onError: (err) => {
+        console.error("게시물 업로드 실패:", err);
+        alert("게시물 업로드 중 오류가 발생했습니다.");
+      },
+    });
+  };
+
+  // ✅ 예약 업로드 (React Query)
+  const handleScheduleUpload = (scheduledTime: string | Date) => {
+    if (!scheduledTime) {
+      alert("예약 시간을 선택해주세요.");
+      return;
+    }
+
+    const formattedTime =
+      scheduledTime instanceof Date
+        ? scheduledTime.toISOString()
+        : new Date(scheduledTime).toISOString();
+
+    const dto: PostRequestDto = {
+      title,
+      subTitle,
+      category,
+      type: "ARTICLE",
+      content,
+      images: selectedImages,
+      postStatus: "SCHEDULED",
+      scheduledTime: formattedTime,
+    };
+
+    schedulePost(dto, {
+      onSuccess: (res) => {
+        alert("게시물이 예약되었습니다! ⏰");
+        console.log("✅ 예약 업로드 성공:", res);
+        setShowBookingPopup(false);
+        resetForm();
+      },
+      onError: (err) => {
+        console.error("예약 업로드 실패:", err);
+        alert("예약 업로드 중 오류가 발생했습니다.");
+      },
+    });
+  };
+
+  // ✅ 입력 초기화
+  const resetForm = () => {
+    setTitle("");
+    setSubTitle("");
+    setCategory("카테고리 선택");
+    setContent("");
+    setSelectedImages([]);
+    setSelectedIndex(null);
   };
 
   return (
     <div className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
-      {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <main className="mx-auto px-[5%] sm:px-[10%] lg:px-[15%] py-12">
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* 왼쪽 이미지 영역 */}
+          {/* 왼쪽 이미지 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
-              {/* 대표 이미지 */}
               <div className="relative w-full flex justify-center mb-4">
                 {selectedImages.length > 0 ? (
                   <>
@@ -90,7 +209,7 @@ const UploadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 썸네일 (대표 이미지 포함) */}
+              {/* 썸네일 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {selectedImages.map((url, i) => (
                   <img
@@ -101,7 +220,7 @@ const UploadPage: React.FC = () => {
                       setModalImageUrl(url);
                       setShowImageModal(true);
                     }}
-                    onContextMenu={(e) => handleContextMenu(e, i)} // 오른쪽 클릭 시 컨텍스트 메뉴
+                    onContextMenu={(e) => handleContextMenu(e, i)}
                     className={`w-[16%] aspect-[3/4] rounded object-cover cursor-pointer ${
                       selectedIndex === i ? "ring-2 ring-red-500" : ""
                     }`}
@@ -109,7 +228,7 @@ const UploadPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* 삭제 버튼 */}
+              {/* 삭제 메뉴 */}
               {contextMenu.visible && (
                 <div
                   className="cursor-pointer absolute z-50 bg-white shadow-md rounded-lg flex items-center px-3 py-2 text-xs"
@@ -118,7 +237,6 @@ const UploadPage: React.FC = () => {
                     left: `${contextMenu.x}px`,
                   }}
                   onClick={handleDeleteImage}
-                  onContextMenu={(e) => e.preventDefault()} // 삭제 버튼에서 우클릭 막기
                 >
                   <img
                     src="/icons/trash-2.png"
@@ -130,7 +248,7 @@ const UploadPage: React.FC = () => {
               )}
             </div>
 
-            {/* 이미지 업로드 버튼 */}
+            {/* 업로드 버튼 */}
             <div className="relative h-[48px] mt-6">
               <input
                 type="file"
@@ -149,19 +267,22 @@ const UploadPage: React.FC = () => {
           </div>
 
           {/* 오른쪽 입력 영역 */}
-          <div className=" flex-1 flex flex-col justify-between">
+          <div className="flex-1 flex flex-col justify-between">
             <div>
               <input
                 type="text"
                 placeholder="제목"
-                className="w-full border-b border-gray-400 focus:outline-none focus:border-black mb-6 pb-1.5 sm:text-2xl placeholder:text-gray-400"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full border-b border-gray-400 focus:outline-none focus:border-black mb-5 pb-1.5 sm:text-3xl placeholder:text-gray-400"
               />
               <input
                 type="text"
                 placeholder="부제목"
-                className="w-full border-b border-gray-300 focus:outline-none focus:border-black mb-6 pb-1.5 sm:text-xl placeholder:text-gray-400"
+                value={subTitle}
+                onChange={(e) => setSubTitle(e.target.value)}
+                className="w-full border-b border-gray-300 focus:outline-none focus:border-black mb-5 pb-1.5 sm:text-xl placeholder:text-gray-400"
               />
-
               <div className="place-self-end text-gray-500 flex flex-row w-[35%] gap-2 mb-6">
                 <CustomDropdown
                   label={category}
@@ -171,34 +292,38 @@ const UploadPage: React.FC = () => {
                 />
               </div>
 
-              <div className="relative">
-                <textarea
-                  placeholder="콘텐츠 내용 작성"
-                  className="w-full aspect-[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
-                />
-                <div className="absolute right-3 bottom-5 text-right text-sm text-gray-500">
-                  0 / 1000
-                </div>
-              </div>
+              <textarea
+                placeholder="콘텐츠 내용 작성"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full aspect-[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
+              />
             </div>
 
             {/* 하단 버튼 */}
             <div className="text-medium lg:text-base flex gap-4 mt-5 justify-between">
               <button
-                onClick={() => setShowStatusModal(true)}
+                onClick={handleSaveDraft}
+                disabled={isSavingDraft}
                 className="border hover:bg-gray-100 active:shadow-md transition border-gray-300 px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
               >
-                임시 저장
+                {isSavingDraft ? "저장 중..." : "임시 저장"}
               </button>
+
               <div className="flex gap-3">
                 <button
-                  className="bg-[#555555] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
                   onClick={() => setShowBookingPopup(true)}
+                  disabled={isScheduling}
+                  className="bg-[#555555] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
                 >
-                  업로드 예약
+                  {isScheduling ? "예약 중..." : "예약 업로드"}
                 </button>
-                <button className="bg-[#FF4545] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-bold cursor-pointer">
-                  업로드
+                <button
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  className="bg-[#FF4545] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-medium cursor-pointer"
+                >
+                  {isUploading ? "업로드 중..." : "업로드"}
                 </button>
               </div>
             </div>
@@ -220,13 +345,10 @@ const UploadPage: React.FC = () => {
           </div>
         )}
 
-        {/* 팝업 및 모달 */}
+        {/* 팝업 */}
         {showBookingPopup && (
           <BookingUploadPopup
-            onConfirm={() => {
-              console.log("예약 업로드 확인됨");
-              setShowBookingPopup(false);
-            }}
+            onConfirm={(time) => handleScheduleUpload(time)}
             onClose={() => setShowBookingPopup(false)}
           />
         )}
@@ -237,7 +359,6 @@ const UploadPage: React.FC = () => {
             onSave={(selected) => {
               setStatus(selected);
               setShowStatusModal(false);
-              console.log("✅ 선택된 상태:", selected);
             }}
           />
         )}

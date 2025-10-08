@@ -11,6 +11,7 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
+import CustomDropdown2A11Y from "@/components/customDropdown2";
 
 interface ContentItem extends AdminContentItem {
   category: string;
@@ -18,7 +19,6 @@ interface ContentItem extends AdminContentItem {
   time: string;
   visibility: "공개" | "비공개";
 }
-
 
 const initialData: ContentItem[] = [
   {
@@ -161,24 +161,50 @@ const ScheduledUploadPage = () => {
           </div>
         </div>
 
-        <div className="flex py-3 px-1 sm:px-3 justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex justify-between items-center mb-2 ml-4">
+          <div className="flex items-center gap-6">
             <input
               type="checkbox"
-              className="w-4 h-4 accent-gray-800"
-              checked={rows.every((row) => row.selected)} // ✅ 전체 선택 여부
+              checked={rows.every((row) => row.selected)}
               onChange={(e) => handleSelectAll(e.target.checked)}
+              className={`
+    relative w-5 h-5 appearance-none rounded border-1 border-gray-300 cursor-pointer
+    transition-all duration-200
+    checked:bg-gray-800 checked:border-gray-800
+    before:content-[''] before:absolute before:top-[2px] before:left-[6px]
+    before:w-[6px] before:h-[10px]
+    before:border-r-2 before:border-b-2 before:border-white
+    before:rotate-45 before:scale-0 checked:before:scale-100
+    before:transition-transform before:duration-200
+  `}
             />
-            <button className="text-sm text-black font-semibold cursor-pointer">
-              전체 업로드
-            </button>
-            <button className="text-sm text-black font-semibold cursor-pointer">
-              전체 삭제
-            </button>
+
+            {/* ✅ 선택된 항목 여부 */}
+            {(() => {
+              const hasSelected = rows.some((row) => row.selected);
+              const activeClass = hasSelected ? "text-black" : "text-[#C6C6C6]";
+
+              return (
+                <>
+                  <button
+                    className={`text-sm font-semibold cursor-pointer transition-colors ${activeClass}`}
+                    disabled={!hasSelected}
+                  >
+                    전체 업로드
+                  </button>
+                  <button
+                    className={`text-sm font-semibold cursor-pointer transition-colors ${activeClass}`}
+                    disabled={!hasSelected}
+                  >
+                    전체 삭제
+                  </button>
+                </>
+              );
+            })()}
           </div>
 
-          <div className="w-[1/4] sm:w-[14%]">
-            <CustomDropdown
+          <div className="">
+            <CustomDropdown2A11Y
               label="업로드 예정 순"
               options={["업로드 예정 순", "작성일 순"]}
               onSelect={() => {}}
@@ -207,17 +233,28 @@ const ScheduledUploadPage = () => {
             "time",
             "actions",
           ]}
-          columnWidths={[
-            "40px",
-            "0.7fr",
-            "3fr",
-            "1fr",
-            "1fr",
-            "1fr",
-            "1fr",
-            "90px",
-          ]}
+          // columnWidths={[
+          //   "40px",
+          //   "0.7fr",
+          //   "3fr",
+          //   "1fr",
+          //   "1fr",
+          //   "1fr",
+          //   "1fr",
+          //   "90px",
+          // ]}
           showCheckbox
+          showHeader={true}
+          columnLabels={[
+            "",
+            "",
+            "콘텐츠",
+            "",
+            "카테고리",
+            "예정 날짜",
+            "예정 시간",
+            "",
+          ]}
         />
 
         <div className="flex justify-center mt-6">

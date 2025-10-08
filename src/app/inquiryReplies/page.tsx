@@ -10,6 +10,7 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
+import CustomDropdown2 from "@/components/customDropdown2";
 
 interface InquiryItem extends AdminContentItem {
   name: string;
@@ -174,7 +175,7 @@ const InquiryRepliesPage = () => {
             />
           </div>
           <div className="flex">
-            <CustomDropdown
+            <CustomDropdown2
               label="최신순"
               options={["최신순", "오래된 순"]}
               onSelect={(value: string) =>
@@ -201,10 +202,10 @@ const InquiryRepliesPage = () => {
             "status",
             "responder",
           ]}
-          columnWidths={["1fr", "2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
+          // columnWidths={["1fr", "2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
           showHeader={true}
           columnLabels={[
-            "문의번호",
+            "번호",
             "문의자",
             "이메일",
             "문의 유형",

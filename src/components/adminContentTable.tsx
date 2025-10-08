@@ -48,8 +48,20 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
   showCheckbox = false,
   columnWidths,
 }) => {
+  const defaultColumnWidths: Record<string, string> = {
+    id: "minmax(50px,0.5fr)",
+    checkbox: "minmax(50px, 0.5fr)",
+    image: "minmax(70px, 0.5fr)",
+    title: "minmax(180px, 3fr)",
+    date: "minmax(100px, 1fr)",
+    author: "minmax(100px, 1fr)",
+    status: "minmax(80px, 1fr)",
+    actions: "minmax(80px, 1fr)",
+  };
+
   const gridTemplate =
-    columnWidths?.join(" ") || `repeat(${columns.length}, 1fr)`;
+    columnWidths?.join(" ") ||
+    columns.map((col) => defaultColumnWidths[col] || "1fr").join(" ");
 
   return (
     <div className="border-t-2 border-gray-500">
@@ -93,8 +105,16 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                       <div key={col} className="flex justify-center">
                         <input
                           type="checkbox"
-                          
-                          className="w-4 h-4 accent-gray-800"
+                          className={`
+    relative w-5 h-5 appearance-none rounded border-1 border-gray-300 cursor-pointer
+    transition-all duration-200
+    checked:bg-gray-800 checked:border-gray-800
+    before:content-[''] before:absolute before:top-[2px] before:left-[6px]
+    before:w-[6px] before:h-[10px]
+    before:border-r-2 before:border-b-2 before:border-white
+    before:rotate-45 before:scale-0 checked:before:scale-100
+    before:transition-transform before:duration-200
+  `}
                           checked={item.selected || false}
                           onChange={(e) =>
                             item.onSelectChange?.(e.target.checked)
@@ -109,7 +129,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                     return (
                       <div key={col}>
                         <Image
-                          src={item.image || "/images/Category-1.jpg"}
+                          src={"/images/Category-1.jpg"}
                           alt="썸네일"
                           width={40}
                           height={40}
@@ -187,83 +207,101 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
         {data.map((item) => (
           <div
             key={item.id}
-            className="flex gap-4 py-4 cursor-pointer"
+            className="flex flex-col gap-3 py-4 cursor-pointer px-2"
             onClick={item.onClickRow}
           >
-            {/* 체크박스 (모바일 왼쪽) */}
-            {showCheckbox && (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-gray-800"
-                  checked={item.selected || false}
-                  onChange={(e) => item.onSelectChange?.(e.target.checked)}
-                  onClick={(e) => e.stopPropagation()}
+            {/* 이미지 */}
+            {columns.includes("image") && (
+              <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg overflow-hidden">
+                <Image
+                  src={"/images/Category-1.jpg"}
+                  alt={item.title}
+                  width={300}
+                  height={200}
+                  className="w-full h-full object-cover"
                 />
               </div>
             )}
 
-            {/* 썸네일 */}
-            <div className="w-20 h-20 flex-shrink-0 rounded-lg bg-gray-100 overflow-hidden">
-              <Image
-                src={item.image || "/images/Category-1.jpg"}
-                alt={item.title}
-                width={80}
-                height={80}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {/* 텍스트 필드 */}
+            <div className="flex flex-col gap-1 text-[13px] text-gray-700">
+              {columns.map((col, index) => {
+                if (col === "image" || col === "checkbox" || col === "actions")
+                  return null; // 이미 처리했거나 모바일에서 제외할 항목
 
-            {/* 텍스트 정보 */}
-            <div className="flex flex-col flex-1">
-              <h4 className="font-semibold text-sm truncate text-wrap">{item.title}</h4>
-              <p className="text-xs text-gray-500">{item.author}</p>
-              <p className="text-xs text-gray-400">{item.date}</p>
-              {item.status && (
-                <span
-                  className={`text-[11px] font-medium mt-1 ${
-                    item.status === "작성 완료"
-                      ? "text-green-600"
-                      : item.status === "작성 중"
-                      ? "text-yellow-500"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {item.status}
-                </span>
-              )}
+                const label = columnLabels?.[index] || col;
+                const value = item[col as keyof AdminContentItem] ?? "-";
+
+                // status 컬러 처리
+                if (col === "status") {
+                  return (
+                    <div
+                      key={col}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="font-semibold">{label}</span>
+                      <span
+                        className={`text-xs font-semibold ${
+                          value === "작성 완료"
+                            ? "text-green-600"
+                            : value === "작성 중"
+                            ? "text-yellow-500"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {value as string}
+                      </span>
+                    </div>
+                  );
+                }
+
+                // 기본 필드
+                return (
+                  <div
+                    key={col}
+                    className="flex justify-between items-center border-b border-gray-100 pb-1"
+                  >
+                    <span className="text-gray-500 font-semibold">{label}</span>
+                    <span className="text-gray-700 text-sm text-right max-w-[60%] truncate">
+                      {value as string}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* 액션 버튼 */}
-            <div className="flex flex-col justify-between items-end text-gray-500 text-xs">
-              {item.onEdit && (
-                <FiEdit2
-                  className="cursor-pointer w-4 h-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    item.onEdit?.();
-                  }}
-                />
-              )}
-              {item.onDelete && (
-                <FiTrash2
-                  className="cursor-pointer w-4 h-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    item.onDelete?.();
-                  }}
-                />
-              )}
-              {item.onShare && (
-                <FiShare2
-                  className="cursor-pointer w-4 h-4"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    item.onShare?.();
-                  }}
-                />
-              )}
-            </div>
+            {columns.includes("actions") && (
+              <div className="flex justify-end gap-3 text-gray-500 pt-2">
+                {item.onEdit && (
+                  <FiEdit2
+                    className="cursor-pointer w-4 h-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      item.onEdit?.();
+                    }}
+                  />
+                )}
+                {item.onDelete && (
+                  <FiTrash2
+                    className="cursor-pointer w-4 h-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      item.onDelete?.();
+                    }}
+                  />
+                )}
+                {item.onShare && (
+                  <FiShare2
+                    className="cursor-pointer w-4 h-4"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      item.onShare?.();
+                    }}
+                  />
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>

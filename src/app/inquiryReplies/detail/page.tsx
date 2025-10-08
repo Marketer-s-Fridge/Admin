@@ -75,7 +75,7 @@ const InquiryDetailPage: React.FC = () => {
           <div className="w-full h-[1px] bg-[#4a5565] mb-3" />
           {/* 답변 작성 */}
           <div className="flex flex-1 flex-row mt-7 mb-15 gap-2">
-            <p className="w-1/9 py-3 text-base font-bold flex-nowrap text-left">
+            <p className="w-1/10 py-3 text-base font-bold flex-nowrap text-left">
               답변
             </p>
             <div className="w-full leading-relaxed">
@@ -90,7 +90,7 @@ const InquiryDetailPage: React.FC = () => {
                   {answer}
                 </div>
               )}
-              <p className="mt-3 text-xs text-gray-600">2025.05.12</p>
+              <p className="text-right mt-3 text-xs text-gray-600">2025.05.12</p>
             </div>
           </div>
         </div>

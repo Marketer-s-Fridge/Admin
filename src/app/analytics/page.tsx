@@ -12,6 +12,7 @@ import AdminContentTable, {
 } from "@/components/adminContentTable";
 import DateRangePickerModal from "@/components/dateRangePickerModal";
 import Image from "next/image";
+import CustomDropdown2A11Y from "@/components/customDropdown2";
 
 interface AnalyticsItem extends AdminContentItem {
   views: number;
@@ -85,9 +86,9 @@ const AnalyticsPage = () => {
               />
             </div>
 
-            <div className="flex flex-[0.3] pl-2">
-              <CustomDropdown
-                label="전체"
+            <div className=" pl-2">
+              <CustomDropdown2A11Y
+                label="클릭수 높은 순"
                 options={["클릭수 높은 순", "반응수 높은 순", "조회수 높은 순"]}
                 onSelect={(value) => setSortOption(value)}
                 buttonClassName="border-0"
@@ -108,7 +109,6 @@ const AnalyticsPage = () => {
             "clicks",
             "engagementRate",
           ]}
-          columnWidths={["0.7fr", "0.7fr", "3.4fr", "2fr", "2fr", "2fr", "2fr"]}
           columnLabels={[
             "번호",
             "",

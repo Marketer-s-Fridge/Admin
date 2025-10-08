@@ -11,6 +11,7 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
+import CustomDropdown2A11Y from "@/components/customDropdown2";
 
 const sampleData: AdminContentItem[] = [
   {
@@ -125,7 +126,7 @@ const TempListPage = () => {
       {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-10 lg:px-[15%] py-[2%]">
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
         <div className="flex flex-wrap gap-3 mb-4 justify-between ">
           <AdminSearchInput
             value={search}
@@ -173,8 +174,8 @@ const TempListPage = () => {
             <p className="font-semibold">임시 저장본</p>
             <p className="text-xs">{filteredData.length}</p>
           </div>
-          <div className="w-1/4 sm:w-[13%]">
-            <CustomDropdown
+          <div className="">
+            <CustomDropdown2A11Y
               label="최신 저장 순"
               options={["최신 저장 순", "오래된 순"]}
               onSelect={() => {}}
@@ -199,15 +200,26 @@ const TempListPage = () => {
             "status",
             "actions",
           ]}
-          columnWidths={[
-            "40px",
-            "0.7fr",
-            "3fr",
-            "0.5fr",
-            "0.5fr",
-            "0.7fr",
-            "70px",
-            "80px",
+          // columnWidths={[
+          //   "40px",
+          //   "0.7fr",
+          //   "3fr",
+          //   "0.5fr",
+          //   "0.5fr",
+          //   "0.7fr",
+          //   "70px",
+          //   "80px",
+          // ]}
+          showHeader={true}
+          columnLabels={[
+            "번호",
+            "",
+            "콘텐츠",
+            "관리자",
+            "카테고리",
+            "저장 날짜",
+            "저장 시간",
+            "",
           ]}
         />
 

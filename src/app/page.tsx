@@ -51,8 +51,8 @@ export default function DashboardPage() {
 
       <div className="min-h-screen flex flex-col lg:flex-row bg-white">
         {/* Sidebar */}
-        <aside className="hidden lg:block bg-[#f9f9f9] border-r border-gray-200 py-6 px-4 text-sm w-full lg:w-[15%]">
-          <ul className="space-y-8 font-bold flex lg:flex-col flex-wrap justify-between">
+        <aside className="hidden lg:block bg-[#f9f9f9] border-r border-gray-200 py-15 px-4 text-sm w-full lg:w-[15%]">
+          <ul className="space-y-10 font-bold flex lg:flex-col flex-wrap justify-between">
             {menuItems.map(({ label, icon, path }, idx) => (
               <li
                 key={idx}
