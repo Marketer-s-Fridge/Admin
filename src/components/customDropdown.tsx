@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
 
@@ -23,6 +23,7 @@ export default function CustomDropdown({
   const [selected, setSelected] = useState(label);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   // ✅ 밖 클릭 시 닫기
   useEffect(() => {
@@ -37,6 +38,17 @@ export default function CustomDropdown({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // ✅ 선택 핸들러 (useCallback으로 안정화)
+  const handleSelect = useCallback(
+    (option: string) => {
+      setSelected(option);
+      setIsOpen(false);
+      setFocusedIndex(null);
+      onSelect?.(option);
+    },
+    [onSelect]
+  );
 
   // ✅ 키보드 제어 (ESC, ↑↓, Enter)
   useEffect(() => {
@@ -68,14 +80,12 @@ export default function CustomDropdown({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, focusedIndex, options]);
+  }, [isOpen, focusedIndex, options, handleSelect]); // ✅ handleSelect 추가됨
 
-  const handleSelect = (option: string) => {
-    setSelected(option);
-    setIsOpen(false);
-    setFocusedIndex(null);
-    onSelect?.(option);
-  };
+  // ✅ 드롭다운 열릴 때 포커스 이동
+  useEffect(() => {
+    if (isOpen && listRef.current) listRef.current.focus();
+  }, [isOpen]);
 
   return (
     <div
@@ -111,56 +121,55 @@ export default function CustomDropdown({
       {/* ✅ 드롭다운 리스트 */}
       {isOpen && (
         <ul
+          ref={listRef}
           role="listbox"
           tabIndex={-1}
           className={clsx(
-            "absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto"
+            "absolute top-full mt-1 left-0 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto animate-fade-slide"
           )}
         >
-          {/* 현재 선택된 항목 */}
-          {/* <li
-            className="flex justify-between items-center py-2 px-2 cursor-pointer select-none"
-            onClick={() => setIsOpen(false)}
-          >
-            <span>{selected}</span>
-            <Image
-              alt="close"
-              src="/icons/down2.png"
-              width={20}
-              height={20}
-              className="w-4 h-4 mr-2"
-            />
-          </li> */}
-
-          {/* <hr className="border-t border-gray-200 my-1 mx-2" /> */}
-
-          {/* 옵션 목록 */}
           {options
-  .filter((opt) => opt !== selected)
-  .map((opt, index) => (
-    <li
-      key={opt}
-      role="option"
-      aria-selected={selected === opt}
-      onClick={() => handleSelect(opt)}
-      onMouseEnter={() => setFocusedIndex(index)}
-      className="px-1 py-1 cursor-pointer select-none"
-    >
-      <div
-        className={clsx(
-          "px-2 py-2 rounded-md transition-colors duration-150",
-          focusedIndex === index
-            ? "bg-[#FF4545] text-white"
-            : "hover:bg-[#FF4545] hover:text-white"
-        )}
-      >
-        {opt}
-      </div>
-    </li>
-  ))}
-
+            .filter((opt) => opt !== selected)
+            .map((opt, index) => (
+              <li
+                key={opt}
+                role="option"
+                aria-selected={selected === opt}
+                onClick={() => handleSelect(opt)}
+                onMouseEnter={() => setFocusedIndex(index)}
+                className="px-[1px] py-[2px] cursor-pointer select-none"
+              >
+                <div
+                  className={clsx(
+                    "px-2 py-2 rounded-md transition-colors duration-150",
+                    focusedIndex === index
+                      ? "bg-[#FF4545] text-white"
+                      : "hover:bg-[#FF4545] hover:text-white"
+                  )}
+                >
+                  {opt}
+                </div>
+              </li>
+            ))}
         </ul>
       )}
+
+      {/* ✅ 애니메이션 */}
+      <style jsx>{`
+        @keyframes fade-slide {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-slide {
+          animation: fade-slide 0.15s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

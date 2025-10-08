@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -19,13 +19,14 @@ const defaultItems = [
   "통계 및 분석",
 ];
 
-const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
+export default function AdminCategoryBar({
   items = defaultItems,
   onSelect,
-}) => {
+}: AdminCategoryBarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const routeMap: Record<string, string> = {
     "콘텐츠 업로드": "/contentsUpload",
@@ -44,7 +45,7 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
-  // ✅ 밖 클릭 시 닫기
+  // ✅ 외부 클릭 시 닫기
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (
@@ -58,10 +59,24 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
+  // ✅ 선택 핸들러 (useCallback으로 안정화)
+  const handleSelect = useCallback(
+    (item: string) => {
+      setSelected(item);
+      setIsOpen(false);
+      setFocusedIndex(null);
+      onSelect?.(item);
+      const route = routeMap[item];
+      if (route) router.push(route);
+    },
+    [onSelect, router]
+  );
+
   // ✅ 키보드 접근성
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (!isOpen) return;
+
       if (e.key === "Escape") setIsOpen(false);
 
       if (e.key === "ArrowDown") {
@@ -80,18 +95,15 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
         handleSelect(items[focusedIndex]);
       }
     };
+
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen, focusedIndex, items]);
+  }, [isOpen, focusedIndex, items, handleSelect]); // ✅ handleSelect 추가됨
 
-  const handleSelect = (item: string) => {
-    setSelected(item);
-    setIsOpen(false);
-    setFocusedIndex(null);
-    onSelect?.(item);
-    const route = routeMap[item];
-    if (route) router.push(route);
-  };
+  // ✅ 드롭다운 열릴 때 포커스 이동
+  useEffect(() => {
+    if (isOpen && listRef.current) listRef.current.focus();
+  }, [isOpen]);
 
   return (
     <div className="hidden lg:block relative px-4 sm:px-10 lg:px-[15%] w-full border-b-2 border-gray-300 text-base font-semibold select-none">
@@ -118,6 +130,7 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
         {/* ✅ 드롭다운 목록 */}
         {isOpen && (
           <ul
+            ref={listRef}
             role="listbox"
             tabIndex={-1}
             className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1 min-w-[180px] animate-fade-slide"
@@ -126,12 +139,12 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
               const isSelected = item === selected;
               return (
                 <li
-                  key={item}
+                  key={`${item}-${index}`}
                   role="option"
                   aria-selected={isSelected}
                   onClick={() => handleSelect(item)}
                   onMouseEnter={() => setFocusedIndex(index)}
-                  className="px-2 py-1 cursor-pointer"
+                  className="px-[1px] py-[2px] cursor-pointer select-none"
                 >
                   <div
                     className={`px-2 py-2 rounded-md transition-colors duration-150 ${
@@ -169,6 +182,4 @@ const AdminCategoryBar: React.FC<AdminCategoryBarProps> = ({
       `}</style>
     </div>
   );
-};
-
-export default AdminCategoryBar;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
 
@@ -25,14 +25,15 @@ export default function CustomDropdown2A11Y({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const [dropdownWidth, setDropdownWidth] = useState<number | null>(null);
 
-  // ✅ 버튼 너비 기반 드롭다운 너비 자동 조정
+  // ✅ 버튼 너비 기반 width 자동 조정
   useEffect(() => {
     if (buttonRef.current) setDropdownWidth(buttonRef.current.offsetWidth);
   }, [selected, isOpen]);
 
-  // ✅ 밖 클릭 시 닫기
+  // ✅ 외부 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -46,7 +47,18 @@ export default function CustomDropdown2A11Y({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ ESC / 방향키 탐색 / Enter 선택
+  // ✅ 선택 핸들러
+  const handleSelect = useCallback(
+    (option: string) => {
+      setSelected(option);
+      setIsOpen(false);
+      setFocusedIndex(null);
+      onSelect?.(option);
+    },
+    [onSelect]
+  );
+
+  // ✅ 키보드 접근성
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setIsOpen(false);
@@ -71,14 +83,12 @@ export default function CustomDropdown2A11Y({
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [isOpen, focusedIndex, options]);
+  }, [isOpen, focusedIndex, options, handleSelect]);
 
-  const handleSelect = (option: string) => {
-    setSelected(option);
-    setIsOpen(false);
-    setFocusedIndex(null);
-    onSelect?.(option);
-  };
+  // ✅ 드롭다운 열릴 때 focus 자동 이동
+  useEffect(() => {
+    if (isOpen && listRef.current) listRef.current.focus();
+  }, [isOpen]);
 
   return (
     <div
@@ -112,11 +122,12 @@ export default function CustomDropdown2A11Y({
       {/* ✅ 드롭다운 리스트 */}
       {isOpen && (
         <ul
+          ref={listRef}
           role="listbox"
           tabIndex={-1}
           className={clsx(
             "absolute top-full mt-1 right-0 bg-white border border-gray-200 rounded-lg shadow-md z-50 max-h-72 overflow-y-auto min-w-max",
-            "transition-all duration-150 ease-out"
+            "animate-fade-slide transition-all duration-150 ease-out"
           )}
           style={{
             width: dropdownWidth ? `${dropdownWidth}px` : "auto",
@@ -129,14 +140,14 @@ export default function CustomDropdown2A11Y({
               aria-selected={selected === opt}
               onClick={() => handleSelect(opt)}
               onMouseEnter={() => setFocusedIndex(index)}
-              className="px-1 py-1 cursor-pointer select-none"
+              className="px-[1px] py-[2px] cursor-pointer select-none"
             >
               <div
                 className={clsx(
                   "px-2 py-2 rounded-md transition-colors duration-150 whitespace-nowrap",
                   focusedIndex === index
                     ? "bg-[#FF4545] text-white"
-                    : "hover:bg-[#FF4545] hover:text-white "
+                    : "hover:bg-[#FF4545] hover:text-white"
                 )}
               >
                 {opt}
@@ -145,6 +156,23 @@ export default function CustomDropdown2A11Y({
           ))}
         </ul>
       )}
+
+      {/* ✅ 애니메이션 */}
+      <style jsx>{`
+        @keyframes fade-slide {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-slide {
+          animation: fade-slide 0.18s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

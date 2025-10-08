@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
-import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
 import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, {
