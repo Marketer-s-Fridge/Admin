@@ -6,7 +6,7 @@ import axios, { AxiosRequestHeaders } from "axios";
 // NEXT_PUBLIC_API_URL=http://15.165.137.5:8081/api
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://15.165.137.5:8081/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   withCredentials: true, // 쿠키/세션 인증 필요할 때 true
   headers: {
     "Content-Type": "application/json",
