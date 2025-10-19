@@ -29,12 +29,12 @@ export default function AdminCategoryBar({
   const listRef = useRef<HTMLUListElement>(null);
 
   const routeMap: Record<string, string> = {
-    "콘텐츠 업로드": "admin/contentsUpload",
-    "콘텐츠 관리": "admin/contentsManagement",
-    "임시 저장 리스트": "admin/tempList",
-    "업로드 예약 리스트": "admin/scheduledUpload",
-    "문의 답변 관리": "admin/inquiryReplies",
-    "통계 및 분석": "admin/analytics",
+    "콘텐츠 업로드": "/contentsUpload",
+    "콘텐츠 관리": "/contentsManagement",
+    "임시 저장 리스트": "/tempList",
+    "업로드 예약 리스트": "/scheduledUpload",
+    "문의 답변 관리": "/inquiryReplies",
+    "통계 및 분석": "/analytics",
   };
 
   // ✅ 현재 경로에 따른 기본 선택값
