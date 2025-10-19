@@ -16,13 +16,12 @@ pipeline {
 
     stage('Build Image') {
       steps {
-        // ✅ 캐시 완전 초기화 후 새 빌드
         sh '''
         echo "🧹 Cleaning previous build cache..."
-        rm -rf .next node_modules
-        npm ci
-        npm run build
-        docker build -t $IMAGE:$TAG -f Dockerfile .
+        # ✅ Docker 빌드 캐시 완전 무효화 (--no-cache)
+        # ✅ .next, node_modules 등 불필요 캐시도 제거 후 새 빌드 수행
+        docker builder prune -f || true
+        docker build --no-cache -t $IMAGE:$TAG -f Dockerfile .
         '''
       }
     }
