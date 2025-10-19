@@ -20,7 +20,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
       {/* 로고 (lg 이하에서 가운데, lg 이상에서 왼쪽) */}
       <Link
-        href="/"
+        href="/admin"
         className="absolute left-1/2 transform -translate-x-1/2 lg:left-0 lg:relative lg:transform-none text-red-500 font-bold text-md lg:text-sm font-playfair"
       >
         Marketer&apos;s Fridge
