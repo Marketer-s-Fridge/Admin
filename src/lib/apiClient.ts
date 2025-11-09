@@ -1,10 +1,5 @@
 import axios, { AxiosRequestHeaders } from "axios";
 
-// ✅ .env 파일 예시
-// NEXT_PUBLIC_API_URL=https://api.yourdomain.com
-// 또는 로컬 개발용
-// NEXT_PUBLIC_API_URL=http://15.165.137.5:8081/api
-
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   withCredentials: true, // 쿠키/세션 인증 필요할 때 true

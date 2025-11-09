@@ -3,9 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { checkEmailDuplication } from "../api/authApi";
 
 export function useCheckEmailDuplication(email: string) {
-  return useQuery<boolean>({
-    queryKey: ["emailDuplication", email],
-    queryFn: () => checkEmailDuplication(email),
-    enabled: !!email, // email이 있을 때만 실행
+  const normalized = (email ?? "").trim().toLowerCase();
+  return useQuery({
+    queryKey: ["emailDuplication", normalized],
+    queryFn: () => checkEmailDuplication(normalized),
+    enabled: false,
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
   });
 }

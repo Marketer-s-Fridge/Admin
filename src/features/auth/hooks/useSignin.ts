@@ -4,7 +4,7 @@ import { signin } from "../api/authApi";
 import { SigninRequestDto, UserResponseDto } from "../types";
 
 export function useSignin() {
-  return useMutation<UserResponseDto, Error, SigninRequestDto>({
+  return useMutation<string, Error, SigninRequestDto>({
     mutationFn: signin,
   });
 }
