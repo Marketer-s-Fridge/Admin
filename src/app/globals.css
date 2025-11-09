@@ -40,8 +40,8 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff !important;
+  color: #000000 !important; /* ✅ 다크모드에서도 항상 검정색 글씨 */
   font-family: "Pretendard", Helvetica, sans-serif;
   /* @apply text-black font-pretendard; */
 }
