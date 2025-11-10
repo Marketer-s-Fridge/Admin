@@ -1,54 +1,40 @@
 "use client";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import MobileMenu from "@/components/mobileMenu";
+
+// ✅ 추가된 훅
+import { usePublishedCount } from "@/features/posts/hooks/usePublishedCount";
+import { useUserCount } from "@/features/auth/hooks/useUserCount";
+import { usePublishedPosts } from "@/features/posts/hooks/usePublishedPosts";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ✅ 게시된 게시물 수 / 전체 사용자 수 조회
+  const { data: publishedCnt, isLoading: pubLoading, isError: pubErr } = usePublishedCount();
+  const { data: userCnt, isLoading: userLoading, isError: userErr } = useUserCount();
+
+  // ✅ 게시된 게시물 목록 조회 (최신 6개)
+  const { data: publishedPosts, isLoading: postsLoading, isError: postsErr } = usePublishedPosts(6);
+
+  const fmt = (n: number) => n.toLocaleString("ko-KR");
+
   const menuItems = [
-    {
-      label: "콘텐츠 업로드",
-      icon: "/admin/icons/upload.png",
-      path: "contentsUpload",
-    },
-    {
-      label: "콘텐츠 관리",
-      icon: "/admin/icons/menu.png",
-      path: "contentsManagement",
-    },
-    {
-      label: "임시 저장 리스트",
-      icon: "/admin/icons/archive.png",
-      path: "tempList",
-    },
-    {
-      label: "업로드 예약",
-      icon: "/admin/icons/clock.png",
-      path: "scheduledUpload",
-    },
-    {
-      label: "문의 답변 관리",
-      icon: "/admin/icons/mdi_comment-question-outline.png",
-      path: "inquiryReplies",
-    },
-    {
-      label: "통계 및 분석",
-      icon: "/admin/icons/entypo_bar-graph.png",
-      path: "analytics",
-    },
+    { label: "콘텐츠 업로드", icon: "/admin/icons/upload.png", path: "contentsUpload" },
+    { label: "콘텐츠 관리", icon: "/admin/icons/menu.png", path: "contentsManagement" },
+    { label: "임시 저장 리스트", icon: "/admin/icons/archive.png", path: "tempList" },
+    { label: "업로드 예약", icon: "/admin/icons/clock.png", path: "scheduledUpload" },
+    { label: "문의 답변 관리", icon: "/admin/icons/mdi_comment-question-outline.png", path: "inquiryReplies" },
+    { label: "통계 및 분석", icon: "/admin/icons/entypo_bar-graph.png", path: "analytics" },
   ];
-
-
 
   return (
     <div className="bg-white">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
-
-      {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <div className="min-h-screen flex flex-col lg:flex-row bg-white">
@@ -82,79 +68,64 @@ export default function DashboardPage() {
             <div>
               게시물 수
               <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
-                435
+                {pubLoading ? "…" : pubErr ? "-" : fmt(publishedCnt ?? 0)}
               </div>
             </div>
             <div>
               문의사항
-              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
-                1
-              </div>
+              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">1</div>
             </div>
             <div>
               회원 수
               <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
-                1,654
+                {userLoading ? "…" : userErr ? "-" : fmt(userCnt ?? 0)}
               </div>
             </div>
           </div>
 
           <div className="bg-gray-200 w-full h-0.5"></div>
 
+          {/* 하단 콘텐츠 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 my-10">
-            {/* Recent Uploads */}
+            {/* 최근 업로드 */}
             <div>
               <h2 className="text-lg sm:text-xl font-bold mb-4">최근 업로드</h2>
-              <ul className="space-y-3 text-sm">
-                {[
-                  {
-                    category: "Lifestyle",
-                    title: "효과적인 의사소통을 위한 비언어적 신호",
-                    date: "2025.05.16",
-                  },
-                  {
-                    category: "Food",
-                    title: "맛있고 건강한 채식 요리 레시피 10가지",
-                    date: "2025.05.12",
-                  },
-                  {
-                    category: "Lifestyle",
-                    title: "건강한 머리카락을 위한 헤어케어 팁",
-                    date: "2025.05.07",
-                  },
-                  {
-                    category: "Fashion",
-                    title: "패션 스타일링: 개인 맞춤형 옷차림의 중요성",
-                    date: "2025.05.05",
-                  },
-                  {
-                    category: "Lifestyle",
-                    title: "마인드풀니스: 현대인의 스트레스 해소 비법",
-                    date: "2025.04.29",
-                  },
-                  {
-                    category: "Lifestyle",
-                    title: "마인드풀니스: 현대인의 스트레스 해소 비법",
-                    date: "2025.04.22",
-                  },
-                ].map((item, index) => (
-                  <li
-                    key={index}
-                    className="grid grid-cols-[80px_1fr_auto] sm:grid-cols-[100px_1fr_auto] items-center gap-3"
-                  >
-                    <span className="font-bold text-xs sm:text-sm">
-                      {item.category}
-                    </span>
-                    <span className="truncate text-xs sm:text-sm">
-                      {item.title}
-                    </span>
-                    <span className="text-xs text-gray-500">{item.date}</span>
-                  </li>
-                ))}
-              </ul>
+
+              {postsLoading && (
+                <div className="text-sm text-gray-500">로딩 중...</div>
+              )}
+              {postsErr && (
+                <div className="text-sm text-red-500">게시물 로드 실패</div>
+              )}
+              {!postsLoading && !postsErr && publishedPosts && publishedPosts.length > 0 ? (
+                <ul className="space-y-3 text-sm">
+                  {publishedPosts.map((post, index) => (
+                    <li
+                      key={post.id ?? index}
+                      className="grid grid-cols-[80px_1fr_auto] sm:grid-cols-[100px_1fr_auto] items-center gap-3"
+                    >
+                      <span className="font-bold text-xs sm:text-sm">
+                        {post.category ?? "기타"}
+                      </span>
+                      <span className="truncate text-xs sm:text-sm">
+                        {post.title ?? "(제목 없음)"}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {post.updatedAt
+                          ? post.updatedAt.slice(0, 10)
+                          : post.createdAt?.slice(0, 10) ?? "-"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                !postsLoading && (
+                  <div className="text-sm text-gray-500">등록된 게시물이 없습니다.</div>
+                )
+              )}
             </div>
 
-            {/* Visitor Count */}
+            {/* 방문자 수 */}
             <div>
               <h2 className="text-lg sm:text-xl font-bold mb-4">방문자 수</h2>
               <div className="flex flex-wrap gap-4">
@@ -168,19 +139,20 @@ export default function DashboardPage() {
                     className="bg-red-100 p-4 rounded-md text-center w-[30%] min-w-[90px]"
                   >
                     <div className="text-xs mb-1">{item.label}</div>
-                    <div className="text-lg sm:text-xl font-bold">
-                      {item.value}
-                    </div>
+                    <div className="text-lg sm:text-xl font-bold">{item.value}</div>
                   </div>
                 ))}
               </div>
-              <div className="mt-6 text-xs text-gray-500">
-                2025.05.16 24:00 기준
-              </div>
+
+              <div className="mt-6 text-xs text-gray-500">2025.05.16 24:00 기준</div>
               <div className="mt-2 w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs">
                 [방문자 수 그래프 자리]
               </div>
-              <button className="bg-red-500 w-full mt-5 text-white px-6 py-3 rounded-lg text-sm font-semibold">
+
+              <button
+                onClick={() => router.push("/")}
+                className="bg-red-500 w-full mt-5 text-white px-6 py-3 rounded-lg text-sm font-semibold"
+              >
                 홈으로 돌아가기
               </button>
             </div>
