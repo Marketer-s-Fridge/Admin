@@ -107,7 +107,7 @@ export default function CustomDropdown({
       >
         <span className="ml-2 lg:ml-2.5">{selected}</span>
         <Image
-          src="/icons/down2.png"
+          src="/admin/icons/down2.png"
           alt="드롭다운 열기"
           width={20}
           height={20}

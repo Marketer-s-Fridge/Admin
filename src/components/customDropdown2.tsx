@@ -108,7 +108,7 @@ export default function CustomDropdown2A11Y({
       >
         <span className="whitespace-nowrap">{selected}</span>
         <Image
-          src="/icons/down2.png"
+          src="/admin/icons/down2.png"
           alt="드롭다운 열기"
           width={20}
           height={20}

@@ -12,32 +12,32 @@ export default function DashboardPage() {
   const menuItems = [
     {
       label: "콘텐츠 업로드",
-      icon: "/icons/upload.png",
+      icon: "/admin/icons/upload.png",
       path: "contentsUpload",
     },
     {
       label: "콘텐츠 관리",
-      icon: "/icons/menu.png",
+      icon: "/admin/icons/menu.png",
       path: "contentsManagement",
     },
     {
       label: "임시 저장 리스트",
-      icon: "/icons/archive.png",
+      icon: "/admin/icons/archive.png",
       path: "tempList",
     },
     {
       label: "업로드 예약",
-      icon: "/icons/clock.png",
+      icon: "/admin/icons/clock.png",
       path: "scheduledUpload",
     },
     {
       label: "문의 답변 관리",
-      icon: "/icons/mdi_comment-question-outline.png",
+      icon: "/admin/icons/mdi_comment-question-outline.png",
       path: "inquiryReplies",
     },
     {
       label: "통계 및 분석",
-      icon: "/icons/entypo_bar-graph.png",
+      icon: "/admin/icons/entypo_bar-graph.png",
       path: "analytics",
     },
   ];
