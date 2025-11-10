@@ -1,7 +1,7 @@
 // app/admin/tempList/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
@@ -12,7 +12,7 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable, { AdminContentItem } from "@/components/adminContentTable";
 import CustomDropdown2A11Y from "@/components/customDropdown2";
 
-// ✅ 추가: 상태별 게시물 훅
+// 상태별 게시물 훅
 import { usePostsByStatus } from "@/features/posts/hooks/usePostByStatus";
 import { PostResponseDto } from "@/features/posts/types";
 
@@ -29,8 +29,7 @@ const mapToRow = (p: PostResponseDto): AdminContentItem => {
     title: p.title ?? "-",
     category: (p as any).category?.name ?? (p as any).category ?? "-",
     date: fmtDate(created),
-    // ⚠️ 이 테이블은 columns에 'status'를 쓰면서 라벨은 "저장 시간"을 달아둠.
-    // 따라서 'status' 칸에 시간을 넣어 표시한다.
+    // 테이블의 'status' 컬럼을 "저장 시간" 표시에 사용
     status: fmtTime(created),
     visibility: (p as any).visibility === "PRIVATE" ? "비공개" : "공개",
     image: (p as any).thumbnailUrl || (p as any).imageUrl || "",
@@ -46,26 +45,31 @@ const TempListPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const router = useRouter();
 
-  // ✅ DRAFT 불러오기
+  // DRAFT 불러오기
   const { data, isLoading, isError } = usePostsByStatus("DRAFT");
 
-  // 서버 데이터 → 테이블 행
-  const rows: AdminContentItem[] = useMemo(
-    () => (data ?? []).map(mapToRow),
-    [data]
-  );
+  // 서버 데이터 → 행
+  const rows: AdminContentItem[] = useMemo(() => (data ?? []).map(mapToRow), [data]);
 
+  // 필터 + 검색
   const filteredData = useMemo(() => {
     return rows.filter((item) => {
       const matchesCategory = !categoryFilter || categoryFilter === item.category;
-      const matchesStatus = !statusFilter || statusFilter === item.status; // 현재 'status' 칸에 시간을 넣음
+      const matchesStatus = !statusFilter || statusFilter === item.status; // 현재 status 칸에 "시간"을 넣음
+      const q = search.trim().toLowerCase();
       const matchesSearch =
-        !search ||
-        item.title.toLowerCase().includes(search.toLowerCase()) ||
-        item.category?.toLowerCase().includes(search.toLowerCase());
+        !q ||
+        item.title.toLowerCase().includes(q) ||
+        item.category?.toLowerCase().includes(q);
       return matchesCategory && matchesStatus && matchesSearch;
     });
   }, [rows, categoryFilter, statusFilter, search]);
+
+  // 페이지네이션
+  const itemsPerPage = 20;
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <main className="bg-white min-h-screen">
@@ -76,7 +80,6 @@ const TempListPage = () => {
       <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
         <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between ">
           <AdminSearchInput value={search} onChange={(e) => setSearch(e.target.value)} />
-
           <div className="flex flex-row gap-2">
             <CustomDropdown
               label="카테고리 선택"
@@ -99,55 +102,68 @@ const TempListPage = () => {
         {isLoading && <p className="text-sm text-gray-500 px-2">불러오는 중…</p>}
         {isError && <p className="text-sm text-red-500 px-2">임시 저장본을 불러오지 못했습니다.</p>}
 
-        <div className="flex py-3 px-2 sm:px-3 justify-between">
-          <div className="flex flex-row gap-2 items-center">
-            <p className="font-semibold">임시 저장본</p>
-            <p className="text-xs">{filteredData.length}</p>
-          </div>
-          <CustomDropdown2A11Y
-            label="최신 저장 순"
-            options={["최신 저장 순", "오래된 순"]}
-            onSelect={() => {}}
-            buttonClassName="border-0"
-            className="text-gray-500"
-          />
-        </div>
+        {/* 데이터 없을 때 */}
+        {!isLoading && !isError && filteredData.length === 0 && (
+          <div className="text-center text-gray-500 mt-10">게시물이 없습니다.</div>
+        )}
 
-        <AdminContentTable
-          data={filteredData.map((item) => ({
-            ...item,
-            onEdit: () => console.log(`Edit ${item.id}`),
-            onDelete: () => console.log(`Delete ${item.id}`),
-            onShare: () => console.log(`Share ${item.id}`),
-            onClickRow: () => router.push("/admin/contentsUpload"),
-          }))}
-          columns={[
-            "id",
-            "image",
-            "title",
-            "author",
-            "category",
-            "date",
-            // ⚠️ 테이블이 'status' 컬럼을 사용 중이므로 시간 문자열을 여기에 넣어둠
-            "status",
-            "actions",
-          ]}
-          showHeader
-          columnLabels={[
-            "번호",
-            "",
-            "콘텐츠",
-            "관리자",
-            "카테고리",
-            "저장 날짜",
-            "저장 시간",
-            "",
-          ]}
-        />
+        {/* 데이터 있을 때만 테이블과 페이지네이션 */}
+        {!isLoading && !isError && filteredData.length > 0 && (
+          <>
+            <div className="flex py-3 px-2 sm:px-3 justify-between">
+              <div className="flex flex-row gap-2 items-center">
+                <p className="font-semibold">임시 저장본</p>
+                <p className="text-xs">{filteredData.length}</p>
+              </div>
+              <CustomDropdown2A11Y
+                label="최신 저장 순"
+                options={["최신 저장 순", "오래된 순"]}
+                onSelect={() => {}}
+                buttonClassName="border-0"
+                className="text-gray-500"
+              />
+            </div>
 
-        <div className="flex justify-center mt-6">
-          <Pagination currentPage={currentPage} totalPages={Math.max(1, Math.ceil(filteredData.length / 20))} onPageChange={setCurrentPage} />
-        </div>
+            <AdminContentTable
+              data={currentData.map((item) => ({
+                ...item,
+                onEdit: () => console.log(`Edit ${item.id}`),
+                onDelete: () => console.log(`Delete ${item.id}`),
+                onShare: () => console.log(`Share ${item.id}`),
+                onClickRow: () => router.push("/admin/contentsUpload"),
+              }))}
+              columns={[
+                "id",
+                "image",
+                "title",
+                "author",
+                "category",
+                "date",
+                "status", // "저장 시간"이 들어감
+                "actions",
+              ]}
+              showHeader
+              columnLabels={[
+                "번호",
+                "",
+                "콘텐츠",
+                "관리자",
+                "카테고리",
+                "저장 날짜",
+                "저장 시간",
+                "",
+              ]}
+            />
+
+            <div className="flex justify-center mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
+        )}
       </section>
     </main>
   );

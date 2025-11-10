@@ -31,7 +31,6 @@ const fmtTime = (iso?: string) =>
 // 서버 필드 이름이 프로젝트마다 다를 수 있음 → scheduledAt 우선, 없으면 createdAt 사용
 const getWhen = (p: Partial<PostResponseDto>): { d: string; t: string } => {
   const ts =
-    // 흔한 예약 필드 후보들
     (p as any).scheduledAt ||
     (p as any).reserveAt ||
     (p as any).reservedAt ||
@@ -90,6 +89,12 @@ const ScheduledUploadPage = () => {
       return matchesCategory && matchesSearch;
     });
   }, [rows, selectedCategory, search]);
+
+  // ✅ 페이지네이션 계산 (페이지당 20개 예시)
+  const itemsPerPage = 20;
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   if (isLoading) {
     return (
@@ -168,24 +173,32 @@ const ScheduledUploadPage = () => {
           />
         </div>
 
-        <AdminContentTable
-          data={filteredData.map((item) => ({
-            ...item,
-            onSelectChange: (checked) => handleSelectChange(item.id, checked),
-            onEdit: () => console.log("Edit", item.id),
-            onDelete: () => console.log("Delete", item.id),
-            onShare: () => console.log("Share", item.id),
-            onClickRow: () => router.push("/admin/contentsUpload"),
-          }))}
-          columns={["checkbox", "image", "title", "", "category", "date", "time", "actions"]}
-          showCheckbox
-          showHeader
-          columnLabels={["", "", "콘텐츠", "", "카테고리", "예정 날짜", "예정 시간", ""]}
-        />
+        {/* ✅ 조건부 렌더링: 데이터 없을 때 메시지 표시 */}
+        {filteredData.length === 0 ? (
+          <div className="text-center text-gray-500 mt-10">게시물이 없습니다.</div>
+        ) : (
+          <>
+            <AdminContentTable
+              data={currentData.map((item) => ({
+                ...item,
+                onSelectChange: (checked) => handleSelectChange(item.id, checked),
+                onEdit: () => console.log("Edit", item.id),
+                onDelete: () => console.log("Delete", item.id),
+                onShare: () => console.log("Share", item.id),
+                onClickRow: () => router.push("/admin/contentsUpload"),
+              }))}
+              columns={["checkbox", "image", "title", "", "category", "date", "time", "actions"]}
+              showCheckbox
+              showHeader
+              columnLabels={["", "", "콘텐츠", "", "카테고리", "예정 날짜", "예정 시간", ""]}
+            />
 
-        <div className="flex justify-center mt-6">
-          <Pagination currentPage={currentPage} totalPages={Math.max(1, Math.ceil(filteredData.length / 20))} onPageChange={setCurrentPage} />
-        </div>
+            {/* 페이지네이션은 데이터 있을 때만 */}
+            <div className="flex justify-center mt-6">
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            </div>
+          </>
+        )}
       </section>
     </main>
   );

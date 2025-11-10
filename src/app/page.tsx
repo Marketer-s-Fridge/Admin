@@ -9,6 +9,7 @@ import MobileMenu from "@/components/mobileMenu";
 import { usePublishedCount } from "@/features/posts/hooks/usePublishedCount";
 import { useUserCount } from "@/features/auth/hooks/useUserCount";
 import { usePublishedPosts } from "@/features/posts/hooks/usePublishedPosts";
+import { useVisitorStats } from "@/features/visitors/hooks/useVisitorStats";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -21,8 +22,14 @@ export default function DashboardPage() {
   // ✅ 게시된 게시물 목록 조회 (최신 6개)
   const { data: publishedPosts, isLoading: postsLoading, isError: postsErr } = usePublishedPosts(6);
 
-  const fmt = (n: number) => n.toLocaleString("ko-KR");
+  // ✅ 방문자 통계
+  const {
+    data: visitorStats,
+    isLoading: visitorLoading,
+    isError: visitorErr,
+  } = useVisitorStats();
 
+  const fmt = (n: number) => n.toLocaleString("ko-KR");
   const menuItems = [
     { label: "콘텐츠 업로드", icon: "/admin/icons/upload.png", path: "contentsUpload" },
     { label: "콘텐츠 관리", icon: "/admin/icons/menu.png", path: "contentsManagement" },
@@ -128,23 +135,29 @@ export default function DashboardPage() {
             {/* 방문자 수 */}
             <div>
               <h2 className="text-lg sm:text-xl font-bold mb-4">방문자 수</h2>
+
               <div className="flex flex-wrap gap-4">
                 {[
-                  { label: "오늘 방문자 수", value: 12 },
-                  { label: "이번 달 방문자 수", value: 210 },
-                  { label: "전체 방문자 수", value: 3456 },
-                ].map((item, i) => (
+                  { label: "오늘 방문자 수", value: visitorStats?.todayCount },
+                  { label: "이번 달 방문자 수", value: visitorStats?.monthCount },
+                  { label: "전체 방문자 수", value: visitorStats?.totalCount },
+                ].map(({ label, value }, i) => (
                   <div
                     key={i}
-                    className="bg-red-100 p-4 rounded-md text-center w-[30%] min-w-[90px]"
+                    className="bg-red-100 p-4 rounded-md text-center w-[30%] min-w-[110px]"
                   >
-                    <div className="text-xs mb-1">{item.label}</div>
-                    <div className="text-lg sm:text-xl font-bold">{item.value}</div>
+                    <div className="text-xs mb-1">{label}</div>
+                    <div className="text-lg sm:text-xl font-bold">
+                      {visitorLoading ? "…" : visitorErr ? "-" : fmt(value ?? 0)}
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 text-xs text-gray-500">2025.05.16 24:00 기준</div>
+              <div className="mt-6 text-xs text-gray-500">
+                {new Date().toLocaleDateString("ko-KR")} 기준
+              </div>
+
               <div className="mt-2 w-full h-32 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs">
                 [방문자 수 그래프 자리]
               </div>
