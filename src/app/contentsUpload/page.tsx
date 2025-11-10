@@ -10,10 +10,13 @@ import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
 
-// ✅ React Query 훅 import
+// React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
+
+// 업로드 유틸
+import { uploadBatchImages } from "@/lib/upload";
 
 const UploadPage: React.FC = () => {
   const [category, setCategory] = useState("카테고리 선택");
@@ -21,8 +24,9 @@ const UploadPage: React.FC = () => {
   const [subTitle, setSubTitle] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState("");
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]); // blob 또는 http(s)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [files, setFiles] = useState<File[]>([]); // blob에 대응하는 실제 파일들
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -35,42 +39,28 @@ const UploadPage: React.FC = () => {
     index: number | null;
   }>({ visible: false, x: 0, y: 0, index: null });
 
-  // ✅ React Query 훅들
+  // React Query 훅들
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
   const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
 
-  // ✅ 이미지 업로드 (미리보기용: blob URL)
+  // 이미지 선택(미리보기 + 파일 보관)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      const urls = Array.from(files).map((file) => URL.createObjectURL(file));
-      setSelectedImages((prev) => {
-        const next = [...prev, ...urls];
-        if (next.length && selectedIndex === null) setSelectedIndex(0);
-        return next;
-      });
-    }
+    const f = e.target.files;
+    if (!f || !f.length) return;
+
+    const newFiles = Array.from(f);
+    const urls = newFiles.map((file) => URL.createObjectURL(file));
+
+    setSelectedImages((prev) => {
+      const next = [...prev, ...urls];
+      if (next.length && selectedIndex === null) setSelectedIndex(0);
+      return next;
+    });
+    setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // ✅ 이미지 삭제
-  const handleDeleteImage = () => {
-    if (contextMenu.index !== null) {
-      const newImages = [...selectedImages];
-      newImages.splice(contextMenu.index, 1);
-      setSelectedImages(newImages);
-      // 선택 인덱스 보정
-      setSelectedIndex((prev) => {
-        if (prev === null) return null;
-        if (prev === contextMenu.index) return newImages.length ? 0 : null;
-        if (prev > (contextMenu.index as number)) return prev - 1;
-        return prev;
-      });
-      setContextMenu({ visible: false, x: 0, y: 0, index: null });
-    }
-  };
-
-  // ✅ 우클릭 시 메뉴 표시
+  // 우클릭 컨텍스트 메뉴
   const handleContextMenu = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
@@ -82,12 +72,73 @@ const UploadPage: React.FC = () => {
     });
   };
 
-  // ✅ 임시 저장 (React Query)
-  const handleSaveDraft = () => {
+  // 이미지 삭제(미리보기와 files 동기화)
+  const handleDeleteImage = () => {
+    if (contextMenu.index === null) return;
+    const idx = contextMenu.index;
+
+    const removedUrl = selectedImages[idx];
+
+    const newImages = [...selectedImages];
+    newImages.splice(idx, 1);
+    setSelectedImages(newImages);
+
+    if (removedUrl?.startsWith("blob:")) {
+      // idx 이전의 blob 개수 = files에서 지울 인덱스
+      const blobBefore = selectedImages
+        .slice(0, idx)
+        .filter((u) => u.startsWith("blob:")).length;
+      setFiles((prev) => {
+        const copy = [...prev];
+        copy.splice(blobBefore, 1);
+        return copy;
+      });
+    }
+
+    setSelectedIndex((prev) => {
+      if (prev === null) return null;
+      if (prev === idx) return newImages.length ? 0 : null;
+      if (prev > idx) return prev - 1;
+      return prev;
+    });
+    setContextMenu({ visible: false, x: 0, y: 0, index: null });
+  };
+
+  // blob만 S3 업로드해서 http(s)로 치환
+  async function ensureUploadedUrls(): Promise<string[]> {
+    if (!selectedImages.length) return [];
+
+    const blobIdxs: number[] = [];
+    selectedImages.forEach((u, i) => {
+      if (u.startsWith("blob:")) blobIdxs.push(i);
+    });
+
+    let uploaded: string[] = [];
+    if (blobIdxs.length > 0) {
+      // files는 blob 추가 순서와 동일하게 쌓였다고 가정
+      uploaded = await uploadBatchImages(files);
+    }
+
+    const result: string[] = [];
+    let cursor = 0;
+    for (const u of selectedImages) {
+      if (u.startsWith("blob:")) result.push(uploaded[cursor++]);
+      else result.push(u);
+    }
+
+    setSelectedImages(result);
+    setFiles([]); // 재업로드 방지
+    return result;
+  }
+
+  // 임시 저장
+  const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
       alert("제목과 카테고리를 입력해주세요.");
       return;
     }
+
+    const imageUrls = await ensureUploadedUrls();
 
     const dto: PostRequestDto = {
       title,
@@ -95,11 +146,10 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: selectedImages, // 주의: 실제 배포 시엔 S3 URL 등 실 URL로 교체 필요
+      images: imageUrls,
       postStatus: "DRAFT",
     };
 
-    // id 없이 호출 → 신규 초안 생성
     saveDraft(
       { dto },
       {
@@ -115,12 +165,14 @@ const UploadPage: React.FC = () => {
     );
   };
 
-  // ✅ 게시물 업로드 (React Query)
-  const handleUpload = () => {
+  // 즉시 업로드
+  const handleUpload = async () => {
     if (!title.trim() || !content.trim() || category === "카테고리 선택") {
       alert("제목, 카테고리, 내용을 입력해주세요!");
       return;
     }
+
+    const imageUrls = await ensureUploadedUrls();
 
     const dto: PostRequestDto = {
       title,
@@ -128,7 +180,7 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: selectedImages, // 주의: 실제 배포 시엔 S3 URL 등 실 URL로 교체 필요
+      images: imageUrls,
       postStatus: "PUBLISHED",
     };
 
@@ -145,8 +197,8 @@ const UploadPage: React.FC = () => {
     });
   };
 
-  // ✅ 예약 업로드 (React Query)
-  const handleScheduleUpload = (scheduledTime: string | Date) => {
+  // 예약 업로드
+  const handleScheduleUpload = async (scheduledTime: string | Date) => {
     if (!scheduledTime) {
       alert("예약 시간을 선택해주세요.");
       return;
@@ -161,13 +213,15 @@ const UploadPage: React.FC = () => {
         ? scheduledTime.toISOString()
         : new Date(scheduledTime).toISOString();
 
+    const imageUrls = await ensureUploadedUrls();
+
     const dto: PostRequestDto = {
       title,
       subTitle,
       category,
       type: "ARTICLE",
       content,
-      images: selectedImages, // 주의
+      images: imageUrls,
       postStatus: "SCHEDULED",
       scheduledTime: formattedTime,
     };
@@ -186,7 +240,7 @@ const UploadPage: React.FC = () => {
     });
   };
 
-  // ✅ 입력 초기화
+  // 초기화
   const resetForm = () => {
     setTitle("");
     setSubTitle("");
@@ -194,6 +248,7 @@ const UploadPage: React.FC = () => {
     setContent("");
     setSelectedImages([]);
     setSelectedIndex(null);
+    setFiles([]);
   };
 
   const mainIdx = selectedIndex ?? 0;
@@ -256,17 +311,10 @@ const UploadPage: React.FC = () => {
               {contextMenu.visible && (
                 <div
                   className="cursor-pointer absolute z-50 bg-white shadow-md rounded-lg flex items-center px-3 py-2 text-xs"
-                  style={{
-                    top: `${contextMenu.y}px`,
-                    left: `${contextMenu.x}px`,
-                  }}
+                  style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
                   onClick={handleDeleteImage}
                 >
-                  <img
-                    src="/icons/trash-2.png"
-                    alt="삭제"
-                    className="w-4 h-4 mr-2"
-                  />
+                  <img src="/icons/trash-2.png" alt="삭제" className="w-4 h-4 mr-2" />
                   <span className="text-gray-700 font-semibold">삭제</span>
                 </div>
               )}
@@ -354,7 +402,7 @@ const UploadPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 이미지 확대 모달: blob URL은 next/image 미지원 → <img> 사용 */}
+        {/* 이미지 확대 모달 */}
         {showImageModal && (
           <div
             className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs flex justify-center items-center"
