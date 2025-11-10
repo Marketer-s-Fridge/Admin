@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import MobileMenu from "@/components/mobileMenu";
@@ -42,6 +42,14 @@ export default function DashboardPage() {
     },
   ];
 
+  useEffect(() => {
+    const at = new URL(location.href).hash.match(/at=([^&]+)/)?.[1];
+    if (at) {
+      localStorage.setItem("accessToken", decodeURIComponent(at));
+      router.replace("/admin"); // 해시 제거
+    }
+  }, []);
+  
   return (
     <div className="bg-white">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
