@@ -1,146 +1,91 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import MobileMenu from "@/components/mobileMenu";
-import AdminContentTable, {
-  AdminContentItem,
-} from "@/components/adminContentTable";
+import AdminContentTable from "@/components/adminContentTable";
 import CustomDropdown2 from "@/components/customDropdown2";
+import { useEnquiries } from "@/features/enquiries/hooks/useEnquiries";
+import { EnquiryResponseDto } from "@/features/enquiries/types";
 
-interface InquiryItem extends AdminContentItem {
-  name: string;
-  email: string;
-  type: string;
-  responder: string;
-  hasAttachment?: boolean;
-}
+type SortLabel = "최신순" | "오래된 순";
+const PAGE_SIZE = 20;
 
-const sampleData: InquiryItem[] = [
-  {
-    id: 7,
-    name: "Sohn678",
-    email: "sohn678@gmail.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "답변 완료",
-    responder: "Admin12",
-    hasAttachment: true,
-    title: "Sohn678",
-    image: "",
-  },
-  {
-    id: 6,
-    name: "luckyseven",
-    email: "ahn123@gmail.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "답변 임시저장",
-    responder: "Admin12",
-    title: "luckyseven",
-    image: "",
-  },
-  {
-    id: 5,
-    name: "saraminjoa",
-    email: "park987@naver.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "미답변",
-    responder: "Admin12",
-    title: "saraminjoa",
-    image: "",
-  },
-  {
-    id: 4,
-    name: "vividsun44",
-    email: "jung456@gmail.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "삭제 변경",
-    responder: "Admin12",
-    title: "vividsun44",
-    image: "",
-  },
-  {
-    id: 3,
-    name: "springbloom57",
-    email: "lee@gmail.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "답변 완료",
-    responder: "Admin12",
-    hasAttachment: true,
-    title: "springbloom57",
-    image: "",
-  },
-  {
-    id: 2,
-    name: "banjjak",
-    email: "kim012@kakao.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "답변 임시저장",
-    responder: "Admin12",
-    hasAttachment: true,
-    title: "banjjak",
-    image: "",
-  },
-  {
-    id: 1,
-    name: "winterstorm",
-    email: "baek789@naver.com",
-    type: "기술적 문제",
-    date: "2025/05/10",
-    status: "삭제 변경",
-    responder: "Admin12",
-    title: "winterstorm",
-    image: "",
-  },
-];
-
-const InquiryRepliesPage = () => {
+export default function InquiryRepliesPage() {
   const router = useRouter();
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<"최신순" | "오래된 순">("최신순");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-  };
+  const [currentPage, setCurrentPage] = useState(1); // 1-base
+  const [statusFilter, setStatusFilter] = useState<string>("전체");
+  const [categoryFilter, setCategoryFilter] = useState<string>("전체");
+  const [sortOrder, setSortOrder] = useState<SortLabel>("최신순");
 
-  const handleTypeFilterChange = (value: string) => {
-    setTypeFilter(value);
-  };
+  const { data, isLoading, isError } = useEnquiries();
 
-  const handleSortOrderChange = (value: "최신순" | "오래된 순") => {
-    setSortOrder(value);
-  };
+  // 1) 전체 → 2) 필터 → 3) 정렬 → 4) 페이징
+  const filteredSorted = useMemo(() => {
+    const list: EnquiryResponseDto[] = data ?? [];
 
-  const filteredData = sampleData
-    .filter((item) => {
-      const statusMatch =
-        !statusFilter ||
-        statusFilter === "전체" ||
-        item.status === statusFilter;
-      const typeMatch =
-        !typeFilter || typeFilter === "전체" || item.type === typeFilter;
-      return statusMatch && typeMatch;
-    })
-    .sort((a, b) => (sortOrder === "최신순" ? b.id - a.id : a.id - b.id));
+    const filtered = list.filter((it) => {
+      const sOk = statusFilter === "전체" || (it.status ?? "-") === statusFilter;
+      const cOk = categoryFilter === "전체" || (it.category ?? "-") === categoryFilter;
+      return sOk && cOk;
+    });
+
+    const sorted = filtered.sort((a, b) => {
+      const aDate = (a.updatedAt || a.createdAt || "").toString();
+      const bDate = (b.updatedAt || b.createdAt || "").toString();
+      // 최신순 = 내림차순
+      return sortOrder === "최신순"
+        ? bDate.localeCompare(aDate)
+        : aDate.localeCompare(bDate);
+    });
+
+    return sorted;
+  }, [data, statusFilter, categoryFilter, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
+  const pageSlice = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredSorted.slice(start, start + PAGE_SIZE);
+  }, [filteredSorted, currentPage]);
+
+  const rows = useMemo(
+    () =>
+      pageSlice.map((item) => ({
+        id: item.id,
+        title: item.title ?? "-",
+        email: item.writerEmail ?? "-",
+        category: item.category ?? "-",
+        date: (item.updatedAt || item.createdAt || "").slice(0, 10),
+        status: item.status ?? "-",
+        image: "",
+        onClickRow: () => router.push(`/admin/inquiryReplies/${item.id}`),
+      })),
+    [pageSlice, router]
+  );
+
+  const onChangeStatus = (v: string) => {
+    setStatusFilter(v);
+    setCurrentPage(1);
+  };
+  const onChangeCategory = (v: string) => {
+    setCategoryFilter(v);
+    setCurrentPage(1);
+  };
+  const onChangeSort = (v: string) => {
+    setSortOrder(v as SortLabel);
+    setCurrentPage(1);
+  };
 
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
       <AdminCategoryBar />
-      {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
@@ -148,20 +93,14 @@ const InquiryRepliesPage = () => {
         <div className="flex flex-col sm:flex-row gap-3 justify-between pb-[1.5%]">
           <div className="flex flex-row gap-2">
             <CustomDropdown
-              label="답변 처리 상태"
-              options={[
-                "전체",
-                "답변 완료",
-                "답변 임시저장",
-                "미답변",
-                "삭제 변경",
-              ]}
-              onSelect={handleStatusFilterChange}
+              label="처리 상태"
+              options={["전체", "미답변", "답변 임시저장", "답변 완료", "삭제 변경"]}
+              onSelect={onChangeStatus}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
             <CustomDropdown
-              label="문의 유형"
+              label="카테고리"
               options={[
                 "전체",
                 "기술적 문제",
@@ -169,63 +108,43 @@ const InquiryRepliesPage = () => {
                 "피드백 및 제안",
                 "기타 문의",
               ]}
-              onSelect={handleTypeFilterChange}
+              onSelect={onChangeCategory}
               buttonClassName="rounded-lg"
               className="text-gray-500"
             />
           </div>
           <div className="flex justify-end">
             <CustomDropdown2
-              label="최신순"
+              label={sortOrder}
               options={["최신순", "오래된 순"]}
-              onSelect={(value: string) =>
-                handleSortOrderChange(value as "최신순" | "오래된 순")
-              }
+              onSelect={onChangeSort}
               buttonClassName="border-0"
               className="text-gray-500 place-self-end"
             />
           </div>
         </div>
 
-        {/* 공통 테이블 적용 */}
+        {/* 상태 */}
+        {isLoading && <p className="text-sm text-gray-500">불러오는 중</p>}
+        {isError && <p className="text-sm text-red-500">목록을 불러오지 못했습니다</p>}
+
+        {/* 테이블 */}
         <AdminContentTable
-          data={filteredData.map((item) => ({
-            ...item,
-            onClickRow: () => router.push("/admin/inquiryReplies/detail"),
-          }))}
-          columns={[
-            "id",
-            "name",
-            "email",
-            "type",
-            "date",
-            "status",
-            "responder",
-          ]}
-          // columnWidths={["1fr", "2fr", "3.5fr", "2fr", "2fr", "2fr", "2fr"]}
-          showHeader={true}
-          columnLabels={[
-            "번호",
-            "문의자",
-            "이메일",
-            "문의 유형",
-            "문의 날짜",
-            "처리 상태",
-            "답변자",
-          ]}
+          data={rows}
+          columns={["id", "title", "email", "category", "date", "status"]}
+          showHeader
+          columnLabels={["번호", "제목", "이메일", "카테고리", "작성일", "상태"]}
         />
 
         {/* 페이지네이션 */}
         <div className="flex justify-center mt-6">
           <Pagination
             currentPage={currentPage}
-            totalPages={1}
-            onPageChange={(page) => setCurrentPage(page)}
+            totalPages={totalPages}
+            onPageChange={(p) => setCurrentPage(p)}
           />
         </div>
       </section>
     </main>
   );
-};
-
-export default InquiryRepliesPage;
+}
