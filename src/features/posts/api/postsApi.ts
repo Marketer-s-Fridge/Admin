@@ -77,7 +77,7 @@ export const fetchPostWithEtag = async (
 /** ✅ 상태별 게시물 조회 */
 export const fetchPostsByStatus = async (status: PostStatus): Promise<PostResponseDto[]> => {
   const res = await api.get<PostResponseDto[]>("/api/posts/by-status", {
-    params: { postStatusEnum: status }, // ← 여기
+    params: { postStatus: status }, // ← 여기
   });
   return res.data;
 };
