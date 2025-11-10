@@ -1,7 +1,7 @@
 import axios, { AxiosRequestHeaders } from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/",
   withCredentials: true, // 쿠키/세션 인증 필요할 때 true
   headers: {
     "Content-Type": "application/json",

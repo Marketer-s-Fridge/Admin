@@ -42,14 +42,8 @@ export default function DashboardPage() {
     },
   ];
 
-  useEffect(() => {
-    const at = new URL(location.href).hash.match(/at=([^&]+)/)?.[1];
-    if (at) {
-      localStorage.setItem("accessToken", decodeURIComponent(at));
-      router.replace("/admin"); // 해시 제거
-    }
-  }, []);
-  
+
+
   return (
     <div className="bg-white">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
