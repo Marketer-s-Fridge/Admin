@@ -7,12 +7,12 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { label: "콘텐츠 업로드", path: "/contentsUpload" },
-  { label: "콘텐츠 관리", path: "/contentsManagement" },
-  { label: "임시 저장 리스트", path: "/tempList" },
-  { label: "업로드 예약", path: "/scheduledUpload" },
-  { label: "문의 답변 관리", path: "/inquiryReplies" },
-  { label: "통계 및 분석", path: "/analytics" },
+  { label: "콘텐츠 업로드", path: "/admin/contentsUpload" },
+  { label: "콘텐츠 관리", path: "/admin/contentsManagement" },
+  { label: "임시 저장 리스트", path: "/admin/tempList" },
+  { label: "업로드 예약", path: "/admin/scheduledUpload" },
+  { label: "문의 답변 관리", path: "/admin/inquiryReplies" },
+  { label: "통계 및 분석", path: "/admin/analytics" },
 ];
 
 const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {

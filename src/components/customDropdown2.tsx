@@ -116,6 +116,8 @@ export default function CustomDropdown2A11Y({
             "w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 object-contain transition-transform duration-200",
             isOpen ? "rotate-180" : "rotate-0"
           )}
+          unoptimized
+
         />
       </button>
 

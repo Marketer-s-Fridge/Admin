@@ -65,6 +65,7 @@ export default function DashboardPage() {
                   width={30}
                   height={30}
                   className="w-5 aspect-square"
+                  unoptimized
                 />
                 {label}
               </li>
