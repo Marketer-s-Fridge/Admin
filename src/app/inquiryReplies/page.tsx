@@ -191,7 +191,7 @@ const InquiryRepliesPage = () => {
         <AdminContentTable
           data={filteredData.map((item) => ({
             ...item,
-            onClickRow: () => router.push("/inquiryReplies/detail"),
+            onClickRow: () => router.push("/admin/inquiryReplies/detail"),
           }))}
           columns={[
             "id",

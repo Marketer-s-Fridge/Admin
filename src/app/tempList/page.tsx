@@ -188,7 +188,7 @@ const TempListPage = () => {
         <AdminContentTable
           data={enhancedData.map((item) => ({
             ...item,
-            onClickRow: () => router.push("/contentsUpload"),
+            onClickRow: () => router.push("/admin/contentsUpload"),
           }))}
           columns={[
             "id",
