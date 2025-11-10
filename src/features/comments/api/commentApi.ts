@@ -17,11 +17,11 @@ export const createComment = async (dto: CommentRequestDto): Promise<CommentResp
 // ✅ 댓글 수정
 export const updateComment = async (
   id: number,
-  content: string
+  dto: { enquiryId: number; content: string; enquiryStatus?: "REPORTED" | "DRAFT" | "PUBLISHED" | "JUNK" }
 ): Promise<CommentResponseDto> => {
-  console.log(`✏️ [댓글 수정 요청] ID=${id}, 내용=${content}`);
+  console.log(`✏️ [댓글 수정 요청] ID=${id}`, dto);
   try {
-    const res = await api.put<CommentResponseDto>(`/comments/${id}`, { content });
+    const res = await api.put<CommentResponseDto>(`/comments/${id}`, dto);
     console.log("✅ [댓글 수정 성공]", res.data);
     return res.data;
   } catch (error) {
