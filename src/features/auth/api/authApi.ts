@@ -180,7 +180,7 @@ export const updatePassword = async (
 
 /** ✅ 전체 사용자 수 조회 */
 export const fetchUserCount = async (): Promise<number> => {
-  const res = await api.get<number>("/auth/count");
+  const res = await api.get<number>("/count");
   return res.data;
 };
 

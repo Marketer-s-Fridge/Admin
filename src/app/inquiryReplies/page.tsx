@@ -125,8 +125,8 @@ export default function InquiryRepliesPage() {
         </div>
 
         {/* 상태 */}
-        {isLoading && <p className="text-sm text-gray-500">불러오는 중</p>}
-        {isError && <p className="text-sm text-red-500">목록을 불러오지 못했습니다</p>}
+        {/* {isLoading && <p className="text-sm text-gray-500">불러오는 중</p>}
+        {isError && <p className="text-sm text-red-500">목록을 불러오지 못했습니다</p>} */}
 
         {/* 테이블 */}
         <AdminContentTable
