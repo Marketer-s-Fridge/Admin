@@ -7,12 +7,15 @@ import Breadcrumb from "@/components/breadCrumb";
 import { FiPaperclip } from "react-icons/fi";
 import { useEnquiry } from "@/features/enquiries/hooks/useEnquiry";
 
-// ⬇ 댓글 훅들 추가
+// 댓글 훅들 (새 스펙 기준)
 import {
   useComments,
-  useCreateComment,
-  useUpdateComment,
+  useCreateDraftComment,
+  useUpdateDraftComment,
+  useCreatePublishComment,
+  useUpdatePublishComment,
   useDeleteComment,
+  useMarkEnquiryAsJunk,
 } from "@/features/comments/hooks/useComments";
 
 export default function InquiryDetailPage() {
@@ -34,17 +37,29 @@ export default function InquiryDetailPage() {
     if (!comments?.length) return undefined;
     // updatedAt desc 정렬 가정
     return [...comments].sort(
-      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     )[0];
   }, [comments]);
 
-  const { mutate: createCmt, isPending: creating } = useCreateComment();
-  const { mutate: updateCmt, isPending: updating } = useUpdateComment();
+  // 댓글 관련 mutation 훅
+  const { mutate: createDraft, isPending: creatingDraft } =
+    useCreateDraftComment();
+  const { mutate: updateDraft, isPending: updatingDraft } =
+    useUpdateDraftComment();
+  const { mutate: createPublish, isPending: creatingPublish } =
+    useCreatePublishComment();
+  const { mutate: updatePublish, isPending: updatingPublish } =
+    useUpdatePublishComment();
   const { mutate: removeCmt, isPending: deleting } = useDeleteComment();
+  const { mutate: markJunk, isPending: junking } = useMarkEnquiryAsJunk();
+
+  const savingDraft = creatingDraft || updatingDraft;
+  const savingPublish = creatingPublish || updatingPublish;
 
   // 편집 상태
   const [isEditing, setIsEditing] = useState(false);
-  const [answer, setAnswer] = useState("");     // 화면 표시용(최신 댓글)
+  const [answer, setAnswer] = useState(""); // 화면 표시용(최신 댓글)
   const [tempAnswer, setTempAnswer] = useState("");
 
   // 최신 댓글을 화면 상태에 반영
@@ -57,7 +72,9 @@ export default function InquiryDetailPage() {
     return (
       <div className="flex flex-col bg-white">
         <AdminHeader />
-        <div className="px-4 lg:px-[22.5%] py-10 text-sm text-gray-500">불러오는 중…</div>
+        <div className="px-4 lg:px-[22.5%] py-10 text-sm text-gray-500">
+          불러오는 중…
+        </div>
       </div>
     );
   }
@@ -65,22 +82,25 @@ export default function InquiryDetailPage() {
     return (
       <div className="flex flex-col bg-white">
         <AdminHeader />
-        <div className="px-4 lg:px-[22.5%] py-10 text-sm text-red-500">문의를 불러오지 못했습니다.</div>
+        <div className="px-4 lg:px-[22.5%] py-10 text-sm text-red-500">
+          문의를 불러오지 못했습니다.
+        </div>
       </div>
     );
   }
 
-  // 공통 저장 함수: 신규면 생성, 있으면 수정
-  const upsertComment = (enquiryStatus: "PUBLISHED" | "DRAFT" | "JUNK") => {
+  // ✅ 임시 저장 (Draft)
+  const handleSaveDraft = () => {
     const content = tempAnswer.trim();
-    if (!content) return alert("내용을 입력하세요.");
+    if (!content) {
+      alert("내용을 입력하세요.");
+      return;
+    }
 
-    if (latest?.id) {
-      updateCmt(
-        {
-          id: latest.id,
-          dto: { enquiryId, content, enquiryStatus },
-        },
+    // 최신 댓글이 있고, 상태가 DRAFT면 초안 수정
+    if (latest && latest.status === "DRAFT") {
+      updateDraft(
+        { id: latest.id, dto: { enquiryId, content } },
         {
           onSuccess: (res) => {
             setAnswer(res.content);
@@ -89,8 +109,9 @@ export default function InquiryDetailPage() {
         }
       );
     } else {
-      createCmt(
-        { enquiryId, content, enquiryStatus },
+      // 없거나, DRAFT가 아니면 새 초안 생성
+      createDraft(
+        { enquiryId, content },
         {
           onSuccess: (res) => {
             setAnswer(res.content);
@@ -101,24 +122,54 @@ export default function InquiryDetailPage() {
     }
   };
 
-  const handleSaveDraft = () => upsertComment("DRAFT");
-  const handleSavePublish = () => upsertComment("PUBLISHED");
-  const handleMarkJunk = () => {
-    if (!latest?.id) {
-      // 최신이 없으면 빈 댓글로 JUNK 생성할지 여부는 정책에 따름. 여기서는 막음.
-      return alert("처리할 댓글이 없습니다.");
+  // ✅ 답변 완료 (Publish)
+  const handleSavePublish = () => {
+    const content = tempAnswer.trim();
+    if (!content) {
+      alert("내용을 입력하세요.");
+      return;
     }
-    updateCmt(
+
+    if (latest?.id) {
+      // 최신 댓글이 있으면 /publish/{commentId} 로 갱신 (Draft든 Published든 서버가 처리)
+      updatePublish(
+        { id: latest.id, dto: { enquiryId, content } },
+        {
+          onSuccess: (res) => {
+            setAnswer(res.content);
+            setIsEditing(false);
+          },
+        }
+      );
+    } else {
+      // 아무 댓글도 없으면 /publish 로 새로 생성
+      createPublish(
+        { enquiryId, content },
+        {
+          onSuccess: (res) => {
+            setAnswer(res.content);
+            setIsEditing(false);
+          },
+        }
+      );
+    }
+  };
+
+  // ✅ 문의 정크 처리 (댓글 상태가 아니라 enquiry 기준)
+  const handleMarkJunk = () => {
+    if (!confirm("해당 문의를 스팸/무효 처리할까요?")) return;
+    markJunk(
+      { enquiryId },
       {
-        id: latest.id,
-        dto: { enquiryId, content: latest.content, enquiryStatus: "JUNK" },
-      },
-      {
-        onSuccess: (res) => setAnswer(res.content),
+        onSuccess: () => {
+          // 필요 시 추가 UI 업데이트
+          alert("스팸/무효 처리되었습니다.");
+        },
       }
     );
   };
 
+  // ✅ 댓글 삭제
   const handleDelete = (commentId: number) => {
     if (!confirm("댓글을 삭제할까요?")) return;
     removeCmt(
@@ -154,7 +205,9 @@ export default function InquiryDetailPage() {
           <div className="flex items-center gap-3 mb-1 border-gray-600 border-y-1 py-2">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
             <span className="text-sm font-medium">마케터</span>
-            <span className="text-sm text-[#8E8E8E]">{data.writerEmail ?? "-"}</span>
+            <span className="text-sm text-[#8E8E8E]">
+              {data.writerEmail ?? "-"}
+            </span>
             <span className="ml-auto text-sm">
               {(data.updatedAt || data.createdAt).slice(0, 10)}
             </span>
@@ -191,7 +244,9 @@ export default function InquiryDetailPage() {
 
           {/* 답변 작성(최신 댓글 기반) */}
           <div className="flex flex-1 flex-row mt-7 mb-15 gap-2">
-            <p className="w-1/10 py-3 text-base font-bold flex-nowrap text-left">답변</p>
+            <p className="w-1/10 py-3 text-base font-bold flex-nowrap text-left">
+              답변
+            </p>
             <div className="w-full leading-relaxed">
               {isEditing ? (
                 <textarea
@@ -202,11 +257,18 @@ export default function InquiryDetailPage() {
                 />
               ) : (
                 <div className="w-full p-3 border-0 border-gray-300 rounded-lg text-sm whitespace-pre-line ">
-                  {cLoading ? "댓글 불러오는 중…" : answer || "아직 등록된 답변이 없습니다."}
+                  {cLoading
+                    ? "댓글 불러오는 중…"
+                    : answer || "아직 등록된 답변이 없습니다."}
                 </div>
               )}
               <p className="text-right mt-3 text-xs text-gray-600">
-                {(latest?.updatedAt || latest?.createdAt || data.updatedAt || data.createdAt).slice(0, 10)}
+                {(
+                  latest?.updatedAt ||
+                  latest?.createdAt ||
+                  data.updatedAt ||
+                  data.createdAt
+                ).slice(0, 10)}
               </p>
             </div>
           </div>
@@ -219,9 +281,13 @@ export default function InquiryDetailPage() {
                 {comments.map((c) => (
                   <li key={c.id} className="border rounded p-3 text-sm">
                     <div className="flex justify-between mb-1">
-                      <span className="text-gray-500">#{c.id} · {c.enquiryStatus}</span>
+                      <span className="text-gray-500">
+                        #{c.id} · {c.status}
+                      </span>
                       <span className="text-gray-400">
-                        {(c.updatedAt || c.createdAt).slice(0, 16).replace("T", " ")}
+                        {(c.updatedAt || c.createdAt)
+                          .slice(0, 16)
+                          .replace("T", " ")}
                       </span>
                     </div>
                     <pre className="whitespace-pre-wrap">{c.content}</pre>
@@ -256,7 +322,7 @@ export default function InquiryDetailPage() {
         <button
           className="bg-[#878787] text-white px-6 py-3 rounded-lg text-sm font-medium cursor-pointer"
           onClick={handleMarkJunk}
-          disabled={updating}
+          disabled={junking}
         >
           스팸/무효
         </button>
@@ -266,14 +332,14 @@ export default function InquiryDetailPage() {
               <button
                 onClick={handleSaveDraft}
                 className="bg-gray-400 text-white px-6 py-3 rounded-lg text-sm font-medium cursor-pointer"
-                disabled={creating || updating}
+                disabled={savingDraft}
               >
                 임시 저장
               </button>
               <button
                 onClick={handleSavePublish}
                 className="bg-[#FF4545] text-white px-6 py-3 rounded-lg text-sm font-medium cursor-pointer"
-                disabled={creating || updating}
+                disabled={savingPublish}
               >
                 답변 완료
               </button>

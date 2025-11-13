@@ -1,58 +1,101 @@
+// src/features/comments/api/commentApi.ts
 import api from "@/lib/apiClient";
 import { CommentRequestDto, CommentResponseDto } from "../types";
 
-// ✅ 댓글 작성
-export const createComment = async (dto: CommentRequestDto): Promise<CommentResponseDto> => {
-  console.log("💬 [댓글 작성 요청]", dto);
-  try {
-    const res = await api.post<CommentResponseDto>("/api/comments", dto);
-    console.log("✅ [댓글 작성 성공]", res.data);
-    return res.data;
-  } catch (error) {
-    console.error("🚨 [댓글 작성 실패]", error);
-    throw error;
-  }
-};
-
-// ✅ 댓글 수정
-export const updateComment = async (
-  id: number,
-  dto: { enquiryId: number; content: string; enquiryStatus?: "REPORTED" | "DRAFT" | "PUBLISHED" | "JUNK" }
-): Promise<CommentResponseDto> => {
-  console.log(`✏️ [댓글 수정 요청] ID=${id}`, dto);
-  try {
-    const res = await api.put<CommentResponseDto>(`/api/comments/${id}`, dto);
-    console.log("✅ [댓글 수정 성공]", res.data);
-    return res.data;
-  } catch (error) {
-    console.error("🚨 [댓글 수정 실패]", error);
-    throw error;
-  }
-};
-
-// ✅ 댓글 삭제
-export const deleteComment = async (id: number): Promise<void> => {
-  console.log(`🗑️ [댓글 삭제 요청] ID=${id}`);
-  try {
-    await api.delete(`/api/comments/${id}`);
-    console.log("✅ [댓글 삭제 성공]");
-  } catch (error) {
-    console.error("🚨 [댓글 삭제 실패]", error);
-    throw error;
-  }
-};
-
-// ✅ 특정 문의 댓글 목록 조회
+/** ✅ 특정 문의의 댓글 목록 조회
+ *  GET /api/comments/enquiry/{enquiryId}
+ */
 export const fetchCommentsByEnquiry = async (
   enquiryId: number
 ): Promise<CommentResponseDto[]> => {
-  console.log(`📡 [문의 댓글 조회 요청] enquiryId=${enquiryId}`);
-  try {
-    const res = await api.get<CommentResponseDto[]>(`/api/comments/enquiry/${enquiryId}`);
-    console.log("✅ [댓글 조회 성공]", res.data);
-    return res.data;
-  } catch (error) {
-    console.error("🚨 [댓글 조회 실패]", error);
-    throw error;
-  }
+  const res = await api.get<CommentResponseDto[]>(
+    `/api/comments/enquiry/${enquiryId}`
+  );
+  return res.data;
+};
+
+/** ✅ 댓글 초안 생성
+ *  POST /api/comments/drafts
+ *  Body: CommentRequestDto (Draft)
+ */
+export const createDraftComment = async (
+  dto: CommentRequestDto
+): Promise<CommentResponseDto> => {
+  const res = await api.post<CommentResponseDto>("/api/comments/drafts", dto);
+  return res.data;
+};
+
+/** ✅ 댓글 초안 수정
+ *  PATCH /api/comments/drafts/{commentId}
+ *  Header: If-Match (옵션)
+ *  Body: CommentRequestDto (Draft)
+ */
+export const updateDraftComment = async (
+  commentId: number,
+  dto: CommentRequestDto,
+  etag?: string
+): Promise<CommentResponseDto> => {
+  const res = await api.patch<CommentResponseDto>(
+    `/api/comments/drafts/${commentId}`,
+    dto,
+    etag
+      ? {
+          headers: {
+            "If-Match": etag,
+          },
+        }
+      : undefined
+  );
+  return res.data;
+};
+
+/** ✅ 댓글 게시 생성 (바로 Publish)
+ *  POST /api/comments/publish
+ *  Body: CommentRequestDto (Publish)
+ */
+export const createPublishComment = async (
+  dto: CommentRequestDto
+): Promise<CommentResponseDto> => {
+  const res = await api.post<CommentResponseDto>("/api/comments/publish", dto);
+  return res.data;
+};
+
+/** ✅ 댓글 게시 업데이트/갱신
+ *  POST /api/comments/publish/{commentId}
+ *  Header: If-Match (옵션)
+ *  Body: CommentRequestDto (Publish)
+ */
+export const updatePublishComment = async (
+  commentId: number,
+  dto: CommentRequestDto,
+  etag?: string
+): Promise<CommentResponseDto> => {
+  const res = await api.post<CommentResponseDto>(
+    `/api/comments/publish/${commentId}`,
+    dto,
+    etag
+      ? {
+          headers: {
+            "If-Match": etag,
+          },
+        }
+      : undefined
+  );
+  return res.data;
+};
+
+/** ✅ 문의를 정크 처리
+ *  POST /api/comments/junk/{enquiryId}
+ */
+export const markEnquiryAsJunk = async (
+  enquiryId: number
+): Promise<void> => {
+  await api.post<void>(`/api/comments/junk/${enquiryId}`);
+};
+
+/** ✅ 댓글 삭제
+ *  DELETE /api/comments/{id}
+ */
+export const deleteComment = async (id: number): Promise<void> => {
+  await api.delete<void>(`/api/comments/${id}`);
 };
