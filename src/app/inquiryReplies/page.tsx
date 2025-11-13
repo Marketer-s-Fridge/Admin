@@ -94,7 +94,7 @@ export default function InquiryRepliesPage() {
           <div className="flex flex-row gap-2">
             <CustomDropdown
               label="처리 상태"
-              options={["전체", "미답변", "답변 임시저장", "답변 완료", "삭제 변경"]}
+              options={["전체", "미답변", "답변 임시저장", "답변 완료", "스팸/무효"]}
               onSelect={onChangeStatus}
               buttonClassName="rounded-lg"
               className="text-gray-500"
@@ -103,10 +103,12 @@ export default function InquiryRepliesPage() {
               label="카테고리"
               options={[
                 "전체",
-                "기술적 문제",
-                "버그/오류 제보",
-                "피드백 및 제안",
-                "기타 문의",
+                "시스템 오류",
+                "회원/계정 관련",
+                "콘텐츠 관련",
+                "제안/피드백",
+                "광고/제휴 문의",
+                "기타"
               ]}
               onSelect={onChangeCategory}
               buttonClassName="rounded-lg"
@@ -133,7 +135,7 @@ export default function InquiryRepliesPage() {
           data={rows}
           columns={["id", "title", "email", "category", "date", "status"]}
           showHeader
-          columnLabels={["번호", "제목", "이메일", "카테고리", "작성일", "상태"]}
+          columnLabels={["번호", "제목", "이메일", "문의 유형", "작성일", "처리 상태"]}
         />
 
         {/* 페이지네이션 */}
