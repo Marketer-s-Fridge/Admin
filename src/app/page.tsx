@@ -1,35 +1,47 @@
 "use client";
+
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
 import MobileMenu from "@/components/mobileMenu";
 
-// ✅ 추가된 훅
+// 통계 관련 훅들
 import { usePublishedCount } from "@/features/posts/hooks/usePublishedCount";
 import { useUserCount } from "@/features/auth/hooks/useUserCount";
 import { usePublishedPosts } from "@/features/posts/hooks/usePublishedPosts";
 import { useVisitorStats } from "@/features/visitors/hooks/useVisitorStats";
 
+// ✅ 문의 조회 훅 추가
+import { useEnquiries } from "@/features/enquiries/hooks/useEnquiries";
+
 export default function DashboardPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ✅ 게시된 게시물 수 / 전체 사용자 수 조회
+  // 게시된 게시물 수 / 전체 사용자 수 조회
   const { data: publishedCnt, isLoading: pubLoading, isError: pubErr } = usePublishedCount();
   const { data: userCnt, isLoading: userLoading, isError: userErr } = useUserCount();
 
-  // ✅ 게시된 게시물 목록 조회 (최신 6개)
+  // 최신 6개 게시물 조회
   const { data: publishedPosts, isLoading: postsLoading, isError: postsErr } = usePublishedPosts(6);
 
-  // ✅ 방문자 통계
+  // 방문자 통계 조회
   const {
     data: visitorStats,
     isLoading: visitorLoading,
     isError: visitorErr,
   } = useVisitorStats();
 
+  // ✅ 전체 문의 조회 (갯수 사용)
+  const {
+    data: enquiries,
+    isLoading: enquiryLoading,
+    isError: enquiryErr,
+  } = useEnquiries();
+
   const fmt = (n: number) => n.toLocaleString("ko-KR");
+
   const menuItems = [
     { label: "콘텐츠 업로드", icon: "/admin/icons/upload.png", path: "contentsUpload" },
     { label: "콘텐츠 관리", icon: "/admin/icons/menu.png", path: "contentsManagement" },
@@ -78,10 +90,18 @@ export default function DashboardPage() {
                 {pubLoading ? "…" : pubErr ? "-" : fmt(publishedCnt ?? 0)}
               </div>
             </div>
+
             <div>
               문의사항
-              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">1</div>
+              <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
+                {enquiryLoading
+                  ? "…"
+                  : enquiryErr
+                  ? "-"
+                  : enquiries?.length ?? 0}
+              </div>
             </div>
+
             <div>
               회원 수
               <div className="text-red-500 text-xl sm:text-2xl lg:text-3xl mt-1">
