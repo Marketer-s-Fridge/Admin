@@ -132,10 +132,12 @@ export default function InquiryRepliesPage() {
               label="카테고리"
               options={[
                 "전체",
-                "기술적 문제",
-                "버그/오류 제보",
-                "피드백 및 제안",
-                "기타 문의",
+                "시스템 문제",
+                "회원/계정 관련",
+                "콘텐츠 관련",
+                "제안/피드백",
+                "광고/제휴 문의",
+                "기타",
               ]}
               onSelect={onChangeCategory}
               buttonClassName="rounded-lg"
