@@ -15,6 +15,22 @@ import { EnquiryResponseDto } from "@/features/enquiries/types";
 type SortLabel = "최신순" | "오래된 순";
 const PAGE_SIZE = 20;
 
+// ✅ 상태 코드 → 한글 라벨 매핑
+const mapStatusToLabel = (status?: string): string => {
+  switch (status) {
+    case "REPORTED":
+      return "접수됨";
+    case "DRAFT":
+      return "답변 임시 저장";
+    case "PUBLISHED":
+      return "답변 완료";
+    case "JUNK":
+      return "스팸/무효";
+    default:
+      return "-";
+  }
+};
+
 export default function InquiryRepliesPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,8 +47,12 @@ export default function InquiryRepliesPage() {
     const list: EnquiryResponseDto[] = data ?? [];
 
     const filtered = list.filter((it) => {
-      const sOk = statusFilter === "전체" || (it.status ?? "-") === statusFilter;
-      const cOk = categoryFilter === "전체" || (it.category ?? "-") === categoryFilter;
+      const statusLabel = mapStatusToLabel(it.status);
+      const sOk =
+        statusFilter === "전체" || statusLabel === statusFilter;
+      const cOk =
+        categoryFilter === "전체" ||
+        (it.category ?? "-") === categoryFilter;
       return sOk && cOk;
     });
 
@@ -48,7 +68,10 @@ export default function InquiryRepliesPage() {
     return sorted;
   }, [data, statusFilter, categoryFilter, sortOrder]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredSorted.length / PAGE_SIZE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredSorted.length / PAGE_SIZE)
+  );
   const pageSlice = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filteredSorted.slice(start, start + PAGE_SIZE);
@@ -62,7 +85,7 @@ export default function InquiryRepliesPage() {
         email: item.writerEmail ?? "-",
         category: item.category ?? "-",
         date: (item.updatedAt || item.createdAt || "").slice(0, 10),
-        status: item.status ?? "-",
+        status: mapStatusToLabel(item.status), // ✅ 한글 라벨로 넣기
         image: "",
         onClickRow: () => router.push(`/admin/inquiryReplies/${item.id}`),
       })),
@@ -94,7 +117,13 @@ export default function InquiryRepliesPage() {
           <div className="flex flex-row gap-2">
             <CustomDropdown
               label="처리 상태"
-              options={["전체", "미답변", "답변 임시저장", "답변 완료", "스팸/무효"]}
+              options={[
+                "전체",
+                "접수됨",
+                "답변 임시 저장",
+                "답변 완료",
+                "스팸/무효",
+              ]}
               onSelect={onChangeStatus}
               buttonClassName="rounded-lg"
               className="text-gray-500"
@@ -103,12 +132,10 @@ export default function InquiryRepliesPage() {
               label="카테고리"
               options={[
                 "전체",
-                "시스템 오류",
-                "회원/계정 관련",
-                "콘텐츠 관련",
-                "제안/피드백",
-                "광고/제휴 문의",
-                "기타"
+                "기술적 문제",
+                "버그/오류 제보",
+                "피드백 및 제안",
+                "기타 문의",
               ]}
               onSelect={onChangeCategory}
               buttonClassName="rounded-lg"
@@ -126,16 +153,26 @@ export default function InquiryRepliesPage() {
           </div>
         </div>
 
-        {/* 상태 */}
-        {/* {isLoading && <p className="text-sm text-gray-500">불러오는 중</p>}
-        {isError && <p className="text-sm text-red-500">목록을 불러오지 못했습니다</p>} */}
-
         {/* 테이블 */}
         <AdminContentTable
           data={rows}
-          columns={["id", "title", "email", "category", "date", "status"]}
+          columns={[
+            "id",
+            "title",
+            "email",
+            "category",
+            "date",
+            "status",
+          ]}
           showHeader
-          columnLabels={["번호", "제목", "이메일", "문의 유형", "작성일", "처리 상태"]}
+          columnLabels={[
+            "번호",
+            "제목",
+            "이메일",
+            "문의 유형",
+            "작성일",
+            "처리 상태",
+          ]}
         />
 
         {/* 페이지네이션 */}
