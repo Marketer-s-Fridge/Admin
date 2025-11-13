@@ -132,7 +132,7 @@ export default function InquiryRepliesPage() {
               label="카테고리"
               options={[
                 "전체",
-                "시스템 문제",
+                "시스템 오류",
                 "회원/계정 관련",
                 "콘텐츠 관련",
                 "제안/피드백",
