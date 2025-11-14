@@ -158,9 +158,9 @@ export default function DashboardPage() {
 
               <div className="flex flex-wrap gap-4">
                 {[
-                  { label: "오늘 방문자 수", value: visitorStats?.todayCount },
-                  { label: "이번 달 방문자 수", value: visitorStats?.monthCount },
-                  { label: "전체 방문자 수", value: visitorStats?.totalCount },
+                  { label: "오늘 방문자 수", value: visitorStats?.today },
+                  { label: "이번 달 방문자 수", value: visitorStats?.thisMonth },
+                  { label: "전체 방문자 수", value: visitorStats?.all },
                 ].map(({ label, value }, i) => (
                   <div
                     key={i}
