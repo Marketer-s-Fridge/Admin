@@ -179,8 +179,8 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                           className="cursor-pointer w-4 h-4"
                           onClick={(e) => {
                             e.stopPropagation();
-                            item.onDelete?.();        // ✅ 여기에서 위에서 만든 handleDelete 실행됨
-                          }}                          
+                            item.onDelete?.(); // ✅ 여기에서 위에서 만든 handleDelete 실행됨
+                          }}
                         />
                         {item.onShare && (
                           <FiShare2
@@ -217,7 +217,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             {columns.includes("image") && (
               <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg overflow-hidden">
                 <Image
-                  src={"/images/Category-1.jpg"}
+                  src={item.image || "/images/Category-1.jpg"} // ✅ 여기!
                   alt={item.title}
                   width={300}
                   height={200}
