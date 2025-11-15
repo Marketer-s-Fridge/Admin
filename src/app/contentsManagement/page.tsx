@@ -130,7 +130,7 @@ const ContentManagementPage = () => {
                   : "게시 완료",
               visibility: "공개", // 필요시 item.visibility 로 변경
               image: item.images?.[0] || "/images/sample1.png",
-              onClickRow: () => router.push(`/admin/contents/${item.id}`),
+              onClickRow: () => router.push(`/admin/contentsManagement/${item.id}`),
             }))}
             columns={[
               "id",

@@ -1,14 +1,16 @@
-// src/app/admin/upload/page.tsx
+// src/app/admin/contentsUpload/[[...id]]/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import AdminHeader from "@/components/adminHeader";
-import AdminCategoryBar from "../../components/adminCategoryBar";
+import AdminCategoryBar from "@/components/adminCategoryBar";
 import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
+import { usePost } from "@/features/posts/hooks/usePost"; // ✅ 게시글 조회
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
@@ -19,6 +21,19 @@ import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
 import { uploadBatchImages } from "@/lib/upload";
 
 const UploadPage: React.FC = () => {
+  // ✅ URL 파라미터에서 id 읽기
+  const params = useParams<{ id?: string[] }>();
+  const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
+  const postId = rawId ? Number(rawId) : undefined;
+  const isEdit = !!postId;
+
+  // ✅ 기존 게시글 조회 (수정 모드일 때만)
+  const {
+    data: post,
+    isLoading: isPostLoading,
+    error: postError,
+  } = usePost(postId);
+
   const [category, setCategory] = useState("카테고리 선택");
   const [title, setTitle] = useState("");
   const [subTitle, setSubTitle] = useState("");
@@ -43,6 +58,21 @@ const UploadPage: React.FC = () => {
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
   const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
+
+  // ✅ 수정 모드일 때, 기존 게시글 데이터를 폼에 세팅
+  useEffect(() => {
+    if (!isEdit || !post) return;
+
+    setTitle(post.title || "");
+    setSubTitle(post.subTitle || "");
+    setCategory(post.category || "카테고리 선택");
+    setContent(post.content || "");
+    if (post.images && post.images.length > 0) {
+      setSelectedImages(post.images);
+      setSelectedIndex(0);
+      setFiles([]); // 서버 URL이므로 files 비움
+    }
+  }, [isEdit, post]);
 
   // 이미지 선택(미리보기 + 파일 보관)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,6 +180,8 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
+    // ⚠️ 여기서는 새 글 기준 로직.
+    // 수정 모드일 때는 별도 update API가 있으면 거기로 보내야 함.
     saveDraft(
       { dto },
       {
@@ -184,11 +216,14 @@ const UploadPage: React.FC = () => {
       postStatus: "PUBLISHED",
     };
 
+    // ⚠️ isEdit일 때는 "수정 API"가 따로 있으면 그걸 호출해야 정상적인 업데이트가 됨
     uploadPost(dto, {
       onSuccess: (res) => {
-        alert("게시물이 성공적으로 업로드되었습니다!");
+        alert(
+          isEdit ? "게시물이 수정되었습니다!" : "게시물이 업로드되었습니다!"
+        );
         console.log("✅ 업로드 성공:", res);
-        resetForm();
+        if (!isEdit) resetForm();
       },
       onError: (err) => {
         console.error("게시물 업로드 실패:", err);
@@ -228,10 +263,12 @@ const UploadPage: React.FC = () => {
 
     schedulePost(dto, {
       onSuccess: (res) => {
-        alert("게시물이 예약되었습니다!");
+        alert(
+          isEdit ? "예약 정보가 수정되었습니다!" : "게시물이 예약되었습니다!"
+        );
         console.log("✅ 예약 업로드 성공:", res);
         setShowBookingPopup(false);
-        resetForm();
+        if (!isEdit) resetForm();
       },
       onError: (err) => {
         console.error("예약 업로드 실패:", err);
@@ -253,6 +290,23 @@ const UploadPage: React.FC = () => {
 
   const mainIdx = selectedIndex ?? 0;
 
+  // 수정 모드에서 로딩/에러 처리
+  if (isEdit && isPostLoading) {
+    return (
+      <div className="bg-white min-h-screen flex items-center justify-center">
+        불러오는 중...
+      </div>
+    );
+  }
+
+  if (isEdit && postError) {
+    return (
+      <div className="bg-white min-h-screen flex items-center justify-center">
+        게시글 정보를 불러오지 못했습니다.
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
@@ -260,6 +314,10 @@ const UploadPage: React.FC = () => {
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <main className="mx-auto px-[5%] sm:px-[10%] lg:px-[15%] py-12">
+        <h1 className="text-2xl font-bold mb-6">
+          {isEdit ? `콘텐츠 수정 (#${postId})` : "새 콘텐츠 업로드"}
+        </h1>
+
         <div className="flex flex-col lg:flex-row gap-12">
           {/* 왼쪽 이미지 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
@@ -311,10 +369,17 @@ const UploadPage: React.FC = () => {
               {contextMenu.visible && (
                 <div
                   className="cursor-pointer absolute z-50 bg-white shadow-md rounded-lg flex items-center px-3 py-2 text-xs"
-                  style={{ top: `${contextMenu.y}px`, left: `${contextMenu.x}px` }}
+                  style={{
+                    top: `${contextMenu.y}px`,
+                    left: `${contextMenu.x}px`,
+                  }}
                   onClick={handleDeleteImage}
                 >
-                  <img src="/icons/trash-2.png" alt="삭제" className="w-4 h-4 mr-2" />
+                  <img
+                    src="/icons/trash-2.png"
+                    alt="삭제"
+                    className="w-4 h-4 mr-2"
+                  />
                   <span className="text-gray-700 font-semibold">삭제</span>
                 </div>
               )}
@@ -395,7 +460,13 @@ const UploadPage: React.FC = () => {
                   disabled={isUploading}
                   className="bg-[#FF4545] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-medium cursor-pointer"
                 >
-                  {isUploading ? "업로드 중..." : "업로드"}
+                  {isUploading
+                    ? isEdit
+                      ? "수정 중..."
+                      : "업로드 중..."
+                    : isEdit
+                    ? "수정하기"
+                    : "업로드"}
                 </button>
               </div>
             </div>
