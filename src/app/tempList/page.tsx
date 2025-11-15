@@ -130,7 +130,7 @@ const TempListPage = () => {
                 onEdit: () => console.log(`Edit ${item.id}`),
                 onDelete: () => console.log(`Delete ${item.id}`),
                 onShare: () => console.log(`Share ${item.id}`),
-                onClickRow: () => router.push("/admin/contentsUpload"),
+                onClickRow: () => router.push(`/admin/contentsUpload/${item.id}`),
               }))}
               columns={[
                 "id",
