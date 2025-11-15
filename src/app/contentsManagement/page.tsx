@@ -8,8 +8,7 @@ import Pagination from "@/components/pagination";
 import CustomDropdown from "@/components/customDropdown";
 import AdminSearchInput from "@/components/adminSearchInput";
 import MobileMenu from "@/components/mobileMenu";
-import AdminContentTable, {
-} from "@/components/adminContentTable";
+import AdminContentTable from "@/components/adminContentTable";
 import { fetchPosts } from "@/features/posts/api/postsApi";
 import { PostResponseDto } from "@/features/posts/types";
 
@@ -129,7 +128,7 @@ const ContentManagementPage = () => {
                   ? "예약됨"
                   : "게시 완료",
               visibility: "공개", // 필요시 item.visibility 로 변경
-              image: item.images?.[0] || "/images/sample1.png",
+              image: item.images?.[0],
               onClickRow: () => router.push(`/admin/contentsUpload/${item.id}`),
             }))}
             columns={[

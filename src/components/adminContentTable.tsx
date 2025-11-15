@@ -129,7 +129,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                     return (
                       <div key={col}>
                         <Image
-                          src={"/images/Category-1.jpg"}
+                          src={item.image || "/images/Category-1.jpg"} // ✅ 여기!
                           alt="썸네일"
                           width={40}
                           height={40}
