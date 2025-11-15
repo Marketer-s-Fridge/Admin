@@ -1,41 +1,63 @@
 // src/features/comments/types.ts
 
-/** 댓글 상태 (백엔드 enum 값에 맞춰서) */
-export type CommentStatus = "DRAFT" | "PUBLISHED" | "JUNK" | "REPORTED";
+/** 🔹 문의 상태 (댓글 응답에서 사용)
+ *  예: RECEIVED, JUNK, ANSWERED 등 시스템 정의 상태값
+ */
+export type EnquiryStatusForComment =
+  | "RECEIVED"
+  | "JUNK"
+  | "ANSWERED"
+  | string;
+
+/** 🔹 댓글 게시 상태 (publishedStatus)
+ *  예: DRAFT, PUBLISHED 등 시스템 정의 상태값
+ */
+export type CommentPublishedStatus =
+  | "DRAFT"
+  | "PUBLISHED"
+  | "JUNK"
+  | "REPORTED"
+  | string;
 
 /** ✅ CommentRequestDto
- *  - POST /api/comments/drafts
- *  - PATCH /api/comments/drafts/{id}
- *  - POST /api/comments/publish
- *  - POST /api/comments/publish/{id}
+ *  - POST  /api/comments/drafts
+ *  - PATCH /api/comments/drafts/{commentId}
+ *  - POST  /api/comments/publish
+ *  - POST  /api/comments/publish/{commentId}
  */
 export interface CommentRequestDto {
   /** 댓글이 달릴 문의의 ID (enquiryId: Long) */
   enquiryId: number;
-  /** 댓글 내용 (content: String) */
+
+  /** 댓글(답변) 내용 (content: String) */
   content: string;
 }
 
-/** ✅ CommentResponseDto
- *  모든 성공 응답(200 CommentResponseDto)에 공통으로 온다고 가정
- *  - drafts, publish, publish/{id}, enquiry/{id} 조회 등
+/** ✅ CommentResponseDto (엑셀 명세 기준)
+ *  - GET  /api/comments/enquiry/{enquiryId}
+ *  - POST /api/comments/drafts
+ *  - POST /api/comments/publish
+ *  - 등에서 공통으로 사용
  */
 export interface CommentResponseDto {
-  /** 댓글 ID */
+  /** 댓글 ID (Primary Key) */
   id: number;
-  /** 어떤 문의(enquiry)에 달린 댓글인지 */
+
+  /** 연결된 문의 ID */
   enquiryId: number;
-  /** 댓글 내용 */
+
+  /** 댓글(답변) 내용 */
   content: string;
 
-  /** 댓글 상태 (초안 / 발행 / 정크 등) */
-  status: CommentStatus; // 백엔드 필드명이 enquiryStatus면 여기도 맞춰서 변경
+  /** 문의 상태 값 (예: RECEIVED, JUNK, ANSWERED 등) */
+  enquiryStatus: EnquiryStatusForComment;
 
-  /** 작성/수정 일시 (ISO 문자열) */
+  /** 댓글 게시 상태 (예: DRAFT, PUBLISHED 등) */
+  publishedStatus: CommentPublishedStatus;
+
+  /** 댓글 생성 시각 (LocalDateTime → ISO 문자열) */
   createdAt: string;
-  updatedAt: string;
 
-  /** 그 외 서버에서 내려줄 수 있는 부가 정보들 (있으면 사용) */
-  authorName?: string;
-  authorEmail?: string;
+  /** 댓글 마지막 수정 시각 (LocalDateTime → ISO 문자열) */
+  updatedAt: string;
 }

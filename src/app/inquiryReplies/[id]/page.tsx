@@ -98,7 +98,7 @@ export default function InquiryDetailPage() {
     }
 
     // 최신 댓글이 있고, 상태가 DRAFT면 초안 수정
-    if (latest && latest.status === "DRAFT") {
+    if (latest && latest.publishedStatus === "DRAFT") {
       updateDraft(
         { id: latest.id, dto: { enquiryId, content } },
         {
@@ -224,17 +224,17 @@ export default function InquiryDetailPage() {
             </p>
 
             {/* 첨부 파일 */}
-            {data.imageURL ? (
+            {data.imageUrl ? (
               <div className="flex items-center gap-1 text-sm text-[#000000] mt-10">
                 <span>첨부파일 1개</span>
                 <FiPaperclip className="text-gray-500" />
                 <a
-                  href={data.imageURL}
+                  href={data.imageUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="text-[#8E8E8E] underline underline-offset-2 cursor-pointer"
                 >
-                  {data.imageURL.split("/").pop()}
+                  {data.imageUrl.split("/").pop()}
                 </a>
               </div>
             ) : null}
@@ -282,7 +282,7 @@ export default function InquiryDetailPage() {
                   <li key={c.id} className="border rounded p-3 text-sm">
                     <div className="flex justify-between mb-1">
                       <span className="text-gray-500">
-                        #{c.id} · {c.status}
+                        #{c.id} · {c.publishedStatus}
                       </span>
                       <span className="text-gray-400">
                         {(c.updatedAt || c.createdAt)

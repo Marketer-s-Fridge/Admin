@@ -30,6 +30,7 @@ export interface UserResponseDto {
   birthday?: string;
   phone?: string;
   createdAt?: string; // 서버가 주면 사용, 아니면 무시
+  profileImageUrl?: string;
 }
 
 // 엔드포인트별 전용 페이로드
