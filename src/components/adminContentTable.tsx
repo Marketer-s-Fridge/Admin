@@ -177,7 +177,10 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         />
                         <FiTrash2
                           className="cursor-pointer w-4 h-4"
-                          onClick={item.onDelete}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            item.onDelete?.();        // ✅ 여기에서 위에서 만든 handleDelete 실행됨
+                          }}                          
                         />
                         {item.onShare && (
                           <FiShare2

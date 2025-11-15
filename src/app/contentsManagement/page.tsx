@@ -11,6 +11,8 @@ import MobileMenu from "@/components/mobileMenu";
 import AdminContentTable from "@/components/adminContentTable";
 import { fetchPosts } from "@/features/posts/api/postsApi";
 import { PostResponseDto } from "@/features/posts/types";
+import { useDeletePost } from "@/features/posts/hooks/admin/useDelete";
+import DeleteConfirmModal from "@/components/deleteConfirmModal";
 
 const ContentManagementPage = () => {
   const [posts, setPosts] = useState<PostResponseDto[]>([]);
@@ -21,7 +23,22 @@ const ContentManagementPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
 
+
+    // 삭제 버튼 누르면 모달 오픈
+    const openDeleteModal = (id: number) => {
+      setDeleteTargetId(id);
+      setDeleteModalOpen(true);
+    };
+
+      // 모달에서 "삭제" 누르면 실행
+  const confirmDelete = () => {
+    if (!deleteTargetId) return;
+    deletePostMutate(deleteTargetId);
+    setDeleteModalOpen(false);
+  };
   // ✅ 게시물 데이터 불러오기
   useEffect(() => {
     const loadPosts = async () => {
@@ -63,6 +80,21 @@ const ContentManagementPage = () => {
   const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
+  // ✅ 삭제 훅
+  const { mutate: deletePostMutate, isPending: isDeleting } = useDeletePost();
+
+  // ✅ 삭제 핸들러
+  const handleDelete = (id: number) => {
+    if (!confirm("정말 이 콘텐츠를 삭제하시겠습니까?")) return;
+    if (isDeleting) return;
+
+    deletePostMutate(id, {
+      onError: (err) => {
+        console.error(err);
+        alert("삭제 중 오류가 발생했습니다.");
+      },
+    });
+  };
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
@@ -129,6 +161,7 @@ const ContentManagementPage = () => {
                   : "게시 완료",
               visibility: "공개", // 필요시 item.visibility 로 변경
               image: item.images?.[0],
+              onDelete: () => openDeleteModal(item.id),  // ← 여기서 모달 열기만 함
               onClickRow: () => router.push(`/admin/contentsUpload/${item.id}`),
             }))}
             columns={[
@@ -138,8 +171,8 @@ const ContentManagementPage = () => {
               "category",
               "date",
               "status",
-              "actions",
               "visibility",
+              "actions",
             ]}
             // columnWidths={[
             //   "40px",
@@ -159,8 +192,8 @@ const ContentManagementPage = () => {
               "카테고리",
               "게시일자",
               "처리상태",
-              "",
               "공개유무",
+              "",
             ]}
           />
         )}
@@ -176,6 +209,12 @@ const ContentManagementPage = () => {
           </div>
         )}
       </section>
+       {/* 삭제 모달 */}
+       <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </main>
   );
 };
