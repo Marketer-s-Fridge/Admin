@@ -322,7 +322,7 @@ const UploadPage: React.FC = () => {
           {/* 왼쪽 이미지 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
-              <div className="relative w-full flex justify-center mb-4">
+              <div className="hidden md:flex relative w-full justify-center mb-4">
                 {selectedImages.length > 0 ? (
                   <>
                     <img
