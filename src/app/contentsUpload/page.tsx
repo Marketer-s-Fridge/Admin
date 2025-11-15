@@ -18,7 +18,11 @@ import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
 
 // 업로드 유틸
-import { uploadBatchImages } from "@/lib/upload";
+import {
+    useImageUpload,
+    useMultiImageUpload,
+  } from "@/features/posts/hooks/useImageUpload";
+  
 
 const UploadPage: React.FC = () => {
   // ✅ URL 파라미터에서 id 읽기
@@ -26,6 +30,9 @@ const UploadPage: React.FC = () => {
   const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
   const postId = rawId ? Number(rawId) : undefined;
   const isEdit = !!postId;
+    // 이미지 업로드 훅 (단건 / 다건)
+    const { mutateAsync: uploadSingle } = useImageUpload();
+    const { mutateAsync: uploadMulti } = useMultiImageUpload();
 
   // ✅ 기존 게시글 조회 (수정 모드일 때만)
   const {
@@ -135,31 +142,54 @@ const UploadPage: React.FC = () => {
   };
 
   // blob만 S3 업로드해서 http(s)로 치환
-  async function ensureUploadedUrls(): Promise<string[]> {
+   // blob만 S3 업로드해서 http(s)로 치환
+   async function ensureUploadedUrls(): Promise<string[]> {
     if (!selectedImages.length) return [];
 
+    // 현재 선택된 이미지들 중에서 blob인 것들의 인덱스 모으기
     const blobIdxs: number[] = [];
     selectedImages.forEach((u, i) => {
       if (u.startsWith("blob:")) blobIdxs.push(i);
     });
 
     let uploaded: string[] = [];
+
+    // 새로 올린 이미지(blob)가 있을 때만 업로드 수행
     if (blobIdxs.length > 0) {
-      // files는 blob 추가 순서와 동일하게 쌓였다고 가정
-      uploaded = await uploadBatchImages(files);
+      // files 배열은 "blob 추가 순서"대로만 쌓여 있음
+      // 삭제 시에도 blob 순서 기준으로 splice 하고 있으니까
+      // files[0] ~ files[files.length-1] = blobIdxs 순서와 1:1 매칭된다고 보면 됨
+
+      if (blobIdxs.length === 1) {
+        // 사진 1장일 때: 단건 업로드 훅 사용 (File -> string)
+        const file = files[0]; // 유일한 blob 파일
+        const url = await uploadSingle(file);
+        uploaded = [url];
+      } else {
+        // 사진 여러 장일 때: 다건 업로드 훅 사용 (File[] -> string[])
+        uploaded = await uploadMulti(files);
+      }
     }
 
+    // 업로드 결과를 selectedImages 순서에 맞춰 다시 조합
     const result: string[] = [];
     let cursor = 0;
+
     for (const u of selectedImages) {
-      if (u.startsWith("blob:")) result.push(uploaded[cursor++]);
-      else result.push(u);
+      if (u.startsWith("blob:")) {
+        // blob이었던 위치는 업로드된 URL로 치환
+        result.push(uploaded[cursor++]);
+      } else {
+        // 이미 http(s)인 경우는 그대로 유지
+        result.push(u);
+      }
     }
 
     setSelectedImages(result);
     setFiles([]); // 재업로드 방지
     return result;
   }
+
 
   // 임시 저장
   const handleSaveDraft = async () => {
