@@ -400,11 +400,11 @@ const UploadPage: React.FC = () => {
                     />
                     {/* 삭제(X) 버튼 */}
                     <button
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] flex items-center justify-center"
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
                     >
-                      ×
+                      X
                     </button>
                   </div>
                 ))}
@@ -475,22 +475,23 @@ const UploadPage: React.FC = () => {
                 </button>
 
                 {/* ✅ 수정 모드에서만 에디터 픽 버튼 표시 */}
-
-                <button
-                  onClick={handleToggleEditorPick}
-                  disabled={isSettingEditorPick}
-                  className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
-                    editorPick
-                      ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                  }`}
-                >
-                  {isSettingEditorPick
-                    ? "처리 중..."
-                    : editorPick
-                    ? "에디터 픽 해제"
-                    : "에디터 픽 지정"}
-                </button>
+                {isEdit ? (
+                  <button
+                    onClick={handleToggleEditorPick}
+                    disabled={isSettingEditorPick}
+                    className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
+                      editorPick
+                        ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {isSettingEditorPick
+                      ? "처리 중..."
+                      : editorPick
+                      ? "에디터 픽 해제"
+                      : "에디터 픽 지정"}
+                  </button>
+                ) : null}
               </div>
 
               <div className="flex gap-3">

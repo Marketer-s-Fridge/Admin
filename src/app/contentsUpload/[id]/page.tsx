@@ -27,9 +27,9 @@ import {
 const UploadPage: React.FC = () => {
 // ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
 const params = useParams<{ id: string }>();
-const rawId = params.id;              // "21"
-const postId = Number(rawId);         // 21
-const isEdit = true;                  // 이 페이지는 항상 수정
+const rawId = params.id; // 예: "21"
+const postId = Number(rawId);
+const isEdit = true; // 이 페이지는 항상 수정
 
   // 이미지 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
@@ -402,11 +402,11 @@ const isEdit = true;                  // 이 페이지는 항상 수정
                     />
                     {/* 삭제(X) 버튼 */}
                     <button
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] flex items-center justify-center"
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
                     >
-                      ×
+                      X
                     </button>
                   </div>
                 ))}
