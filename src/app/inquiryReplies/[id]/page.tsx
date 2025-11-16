@@ -131,7 +131,7 @@ export default function InquiryDetailPage() {
     }
 
     if (latest?.id) {
-      // 최신 댓글이 있으면 /publish/{commentId} 로 갱신 (Draft든 Published든 서버가 처리)
+      // 최신 댓글이 있으면 /publish/{commentId} 로 갱신
       updatePublish(
         { id: latest.id, dto: { enquiryId, content } },
         {
@@ -155,14 +155,13 @@ export default function InquiryDetailPage() {
     }
   };
 
-  // ✅ 문의 정크 처리 (댓글 상태가 아니라 enquiry 기준)
+  // ✅ 문의 정크 처리
   const handleMarkJunk = () => {
     if (!confirm("해당 문의를 스팸/무효 처리할까요?")) return;
     markJunk(
       { enquiryId },
       {
         onSuccess: () => {
-          // 필요 시 추가 UI 업데이트
           alert("스팸/무효 처리되었습니다.");
         },
       }
@@ -204,7 +203,7 @@ export default function InquiryDetailPage() {
           {/* 유저 정보 */}
           <div className="flex items-center gap-3 mb-1 border-gray-600 border-y-1 py-2">
             <div className="w-8 h-8 rounded-full bg-gray-300" />
-            <span className="text-sm font-medium">마케터</span>
+            <span className="text-sm font-medium">{data.writer?.username}</span>
             <span className="text-sm text-[#8E8E8E]">
               {data.writerEmail ?? "-"}
             </span>
@@ -273,47 +272,7 @@ export default function InquiryDetailPage() {
             </div>
           </div>
 
-          {/* 댓글 리스트 간단 표시 및 조작 */}
-          {comments?.length ? (
-            <div className="mt-6">
-              <p className="text-sm font-semibold mb-2">기존 답변</p>
-              <ul className="space-y-2">
-                {comments.map((c) => (
-                  <li key={c.id} className="border rounded p-3 text-sm">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-500">
-                        #{c.id} · {c.publishedStatus}
-                      </span>
-                      <span className="text-gray-400">
-                        {(c.updatedAt || c.createdAt)
-                          .slice(0, 16)
-                          .replace("T", " ")}
-                      </span>
-                    </div>
-                    <pre className="whitespace-pre-wrap">{c.content}</pre>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        className="px-3 py-1 rounded bg-gray-200 text-xs"
-                        onClick={() => {
-                          setTempAnswer(c.content);
-                          setIsEditing(true);
-                        }}
-                      >
-                        편집
-                      </button>
-                      <button
-                        className="px-3 py-1 rounded bg-gray-200 text-xs"
-                        disabled={deleting}
-                        onClick={() => handleDelete(c.id)}
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+          {/* 🔽🔽 여기 있던 '기존 답변' 섹션 제거됨 🔽🔽 */}
         </div>
       </main>
 
