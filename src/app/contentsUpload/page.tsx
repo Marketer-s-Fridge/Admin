@@ -25,11 +25,11 @@ import {
 } from "@/features/posts/hooks/useImageUpload";
 
 const UploadPage: React.FC = () => {
-  // ✅ URL 파라미터에서 id 읽기 ([[...id]] 대응)
-  const params = useParams<{ id?: string[] }>();
-  const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
-  const postId = rawId ? Number(rawId) : undefined;
-  const isEdit = !!postId;
+  // ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
+  const params = useParams<{ id: string }>();
+  const rawId = params.id; // "21"
+  const postId = Number(rawId); // 21
+  const isEdit = false; // 이 페이지는 항상 수정
 
   // 이미지 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
