@@ -169,8 +169,8 @@ export default function DashboardPage() {
                   {publishedPosts.map((post, index) => (
                     <li
                       key={post.id ?? index}
-                      className="grid grid-cols-[80px_1fr_auto] sm:grid-cols-[100px_1fr_auto] items-center gap-3"
-                      onClick={() => post.id && router.push(`/contentsUpload/${post.id}`)}
+                      className="cursor-pointer grid grid-cols-[80px_1fr_auto] sm:grid-cols-[100px_1fr_auto] items-center gap-3"
+                      onClick={() => post.id && router.push(`/admin/contentsUpload/${post.id}`)}
 
                     >
                       <span className="font-bold text-xs sm:text-sm">
