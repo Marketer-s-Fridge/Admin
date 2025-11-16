@@ -404,7 +404,7 @@ const UploadPage: React.FC = () => {
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
                     >
-                      X
+                      x
                     </button>
                   </div>
                 ))}

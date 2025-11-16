@@ -1,6 +1,7 @@
+// src/app/admin/analytics/page.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import Pagination from "@/components/pagination";
@@ -13,35 +14,76 @@ import DateRangePickerModal from "@/components/dateRangePickerModal";
 import Image from "next/image";
 import CustomDropdown2A11Y from "@/components/customDropdown2";
 
+// ✅ 게시글 조회 훅 (PUBLISHED 상태만 사용)
+// import { usePostsByStatus } from "@/features/posts/hooks/usePostsByStatus";
+// import type { PostStatus } from "@/features/posts/api/postsApi/types"; // PostStatus 타입
+import type { PostStatus } from "@/features/posts/api/postsApi";
+import { usePostsByStatus } from "@/features/posts/hooks/usePostByStatus";
 interface AnalyticsItem extends AdminContentItem {
   views: number;
   clicks: number;
-  engagementRate: string; // format: "12.6%"
+  engagementRate: string; // "12.6%" 형태
 }
 
-const sampleData: AnalyticsItem[] = Array.from({ length: 8 }, (_, i) => ({
-  id: 15 - i,
-  title: "뭐라고? 쿠션이 40가지나 된다고?!",
-  date: "2025/05/10",
-  image: "/images/Category-1.jpg",
-  views: 4234 + i * 100,
-  clicks: 245 + i * 10,
-  engagementRate: `${(12.6 + i * 0.5).toFixed(1)}%`,
-}));
+const PAGE_SIZE = 8; // 한 페이지 당 8개
+
+// 날짜 포맷터: "2025/05/10" 형태
+const formatDate = (dateStr: string | null | undefined) => {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "-";
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}/${m}/${day}`;
+};
 
 const AnalyticsPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [sortOption, setSortOption] = useState<string>("전체");
+  const [sortOption, setSortOption] = useState<string>("클릭수 높은 순");
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const filteredData = sampleData
-    .filter((item) => {
-      const keyword = search.toLowerCase();
-      return item.title.toLowerCase().includes(keyword);
-    })
-    .sort((a, b) => {
+  // ✅ PUBLISHED 상태 게시글들 조회
+  const {
+    data: posts,
+    isLoading,
+    isError,
+  } = usePostsByStatus("PUBLISHED" as PostStatus);
+
+  // ✅ 조회한 게시글을 AnalyticsItem 형태로 변환
+  const analyticsData: AnalyticsItem[] = useMemo(() => {
+    if (!posts) return [];
+
+    return posts.map((post) => {
+      const views = post.viewCount ?? 0;
+      const clicks = post.clickCount ?? 0;
+      const engagement =
+        views > 0 ? `${((clicks / views) * 100).toFixed(1)}%` : "0.0%";
+
+      return {
+        id: post.id,
+        title: post.title,
+        date: formatDate(post.publishedAt || post.createdAt),
+        image: post.images?.[0] || "/images/default-thumbnail.jpg", // 썸네일 없을 때 기본 이미지
+        views,
+        clicks,
+        engagementRate: engagement,
+      };
+    });
+  }, [posts]);
+
+  // ✅ 검색 + 정렬 적용
+  const filteredData = useMemo(() => {
+    const keyword = search.toLowerCase();
+
+    const searched = analyticsData.filter((item) =>
+      item.title.toLowerCase().includes(keyword)
+    );
+
+    const sorted = [...searched].sort((a, b) => {
       switch (sortOption) {
         case "조회수 높은 순":
           return b.views - a.views;
@@ -50,9 +92,26 @@ const AnalyticsPage = () => {
         case "반응수 높은 순":
           return parseFloat(b.engagementRate) - parseFloat(a.engagementRate);
         default:
-          return b.id - a.id; // 최신순
+          // 기본: 번호(게시글 id) 내림차순 = 최신순이라 가정
+          return b.id - a.id;
       }
     });
+
+    return sorted;
+  }, [analyticsData, search, sortOption]);
+
+  // ✅ 페이지네이션 적용
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    return filteredData.slice(start, end);
+  }, [filteredData, currentPage]);
+
+  // 페이지 변경 시 목록 길이보다 페이지가 커지면 1페이지로 리셋해도 됨 (필요시)
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [totalPages, currentPage]);
 
   return (
     <main className="bg-white min-h-screen">
@@ -87,9 +146,12 @@ const AnalyticsPage = () => {
 
             <div className="pl-2">
               <CustomDropdown2A11Y
-                label="클릭수 높은 순"
+                label={sortOption}
                 options={["클릭수 높은 순", "반응수 높은 순", "조회수 높은 순"]}
-                onSelect={(value) => setSortOption(value)}
+                onSelect={(value) => {
+                  setSortOption(value);
+                  setCurrentPage(1); // 정렬 바뀔 때 1페이지로
+                }}
                 buttonClassName="border-0"
                 className="text-gray-500 place-self-end"
               />
@@ -97,36 +159,50 @@ const AnalyticsPage = () => {
           </div>
         </div>
 
-        <AdminContentTable
-          data={filteredData}
-          columns={[
-            "id",
-            "image",
-            "title",
-            "date",
-            "views",
-            "clicks",
-            "engagementRate",
-          ]}
-          columnLabels={[
-            "번호",
-            "",
-            "콘텐츠",
-            "업로드 날짜",
-            "조회수",
-            "클릭수",
-            "반응률",
-          ]}
-          showHeader={true}
-        />
+        {/* ✅ 로딩 / 에러 처리 */}
+        {isLoading && (
+          <div className="py-10 text-center text-gray-500">데이터 불러오는 중...</div>
+        )}
+        {isError && !isLoading && (
+          <div className="py-10 text-center text-red-500">
+            분석 데이터를 불러오는 데 실패했습니다.
+          </div>
+        )}
 
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={1}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
+        {!isLoading && !isError && (
+          <>
+            <AdminContentTable
+              data={paginatedData}
+              columns={[
+                "id",
+                "image",
+                "title",
+                "date",
+                "views",
+                "clicks",
+                "engagementRate",
+              ]}
+              columnLabels={[
+                "번호",
+                "",
+                "콘텐츠",
+                "업로드 날짜",
+                "조회수",
+                "클릭수",
+                "반응률",
+              ]}
+              showHeader={true}
+            />
+
+            <div className="flex justify-center mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </div>
+          </>
+        )}
       </section>
 
       <DateRangePickerModal

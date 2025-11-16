@@ -406,7 +406,7 @@ const isEdit = true; // 이 페이지는 항상 수정
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
                     >
-                      X
+                      x
                     </button>
                   </div>
                 ))}
