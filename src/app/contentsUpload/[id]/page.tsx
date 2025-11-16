@@ -402,7 +402,7 @@ const isEdit = true; // 이 페이지는 항상 수정
                     />
                     {/* 삭제(X) 버튼 */}
                     <button
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
+                      className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
                     >
