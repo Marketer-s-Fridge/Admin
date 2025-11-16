@@ -3,21 +3,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createDraft, updateDraft } from "../../api/postsApi";
 import { PostRequestDto, PostResponseDto } from "../../types";
 
-// id는 옵션
-type DraftParam = { id?: number; dto: PostRequestDto };
+// etag까지 넘길 수 있게 타입 확장
+type DraftParam = { id?: number; dto: PostRequestDto; etag?: string };
 
 export function useUpdateDraft() {
   const qc = useQueryClient();
 
-  return useMutation<PostResponseDto, Error, DraftParam>({
-    // ✅ API가 {data, etag}를 주므로 여기서 data만 꺼내 반환
-    mutationFn: async ({ id, dto }) => {
+  return useMutation<{ data: PostResponseDto; etag?: string }, Error, DraftParam>({
+    // createDraft / updateDraft 그대로 넘겨서 {data, etag} 유지
+    mutationFn: ({ id, dto, etag }) => {
       if (id && id > 0) {
-        const res = await updateDraft(id, dto); // { data, etag }
-        return res.data;
+        return updateDraft(id, dto, etag);   // If-Match 헤더 사용
       } else {
-        const res = await createDraft(dto);     // { data, etag }
-        return res.data;
+        return createDraft(dto);
       }
     },
     onSuccess: () => {
