@@ -19,20 +19,20 @@ import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
 
 // 업로드 유틸
 import {
-    useImageUpload,
-    useMultiImageUpload,
-  } from "@/features/posts/hooks/useImageUpload";
-  
+  useImageUpload,
+  useMultiImageUpload,
+} from "@/features/posts/hooks/useImageUpload";
 
 const UploadPage: React.FC = () => {
-  // ✅ URL 파라미터에서 id 읽기
-  const params = useParams<{ id?: string[] }>();
-  const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
+  // ✅ [id] 라우트면 이렇게!
+  const params = useParams<{ id: string }>();
+  const rawId = params.id; // "123"
   const postId = rawId ? Number(rawId) : undefined;
   const isEdit = !!postId;
-    // 이미지 업로드 훅 (단건 / 다건)
-    const { mutateAsync: uploadSingle } = useImageUpload();
-    const { mutateAsync: uploadMulti } = useMultiImageUpload();
+
+  // 이미지 업로드 훅 (단건 / 다건)
+  const { mutateAsync: uploadSingle } = useImageUpload();
+  const { mutateAsync: uploadMulti } = useMultiImageUpload();
 
   // ✅ 기존 게시글 조회 (수정 모드일 때만)
   const {
@@ -141,8 +141,8 @@ const UploadPage: React.FC = () => {
     setContextMenu({ visible: false, x: 0, y: 0, index: null });
   };
 
-   // blob만 S3 업로드해서 http(s)로 치환
-   async function ensureUploadedUrls(): Promise<string[]> {
+  // blob만 S3 업로드해서 http(s)로 치환
+  async function ensureUploadedUrls(): Promise<string[]> {
     if (!selectedImages.length) return [];
 
     // 현재 선택된 이미지들 중에서 blob인 것들의 인덱스 모으기
@@ -189,7 +189,6 @@ const UploadPage: React.FC = () => {
     return result;
   }
 
-
   // 임시 저장
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
@@ -209,10 +208,9 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    // ⚠️ 여기서는 새 글 기준 로직.
-    // 수정 모드일 때는 별도 update API가 있으면 거기로 보내야 함.
+    // ✅ 새 글 vs 수정 모드 둘 다 처리
     saveDraft(
-      { dto },
+      { id: postId, dto }, // ← 여기!
       {
         onSuccess: (res) => {
           alert("임시 저장 완료! 📝");
