@@ -16,23 +16,25 @@ import { usePost } from "@/features/posts/hooks/usePost"; // ✅ 게시글 조�
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
+// import { useSetEditorPick } from "@/features/posts/hooks/admin/useSetEditorPick";
+import { useSetEditorPick } from "@/features/posts/hooks/useSetEditorPick";
 
 // 업로드 유틸
 import {
-    useImageUpload,
-    useMultiImageUpload,
-  } from "@/features/posts/hooks/useImageUpload";
-  
+  useImageUpload,
+  useMultiImageUpload,
+} from "@/features/posts/hooks/useImageUpload";
 
 const UploadPage: React.FC = () => {
-  // ✅ URL 파라미터에서 id 읽기
+  // ✅ URL 파라미터에서 id 읽기 ([[...id]] 대응)
   const params = useParams<{ id?: string[] }>();
   const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
   const postId = rawId ? Number(rawId) : undefined;
   const isEdit = !!postId;
-    // 이미지 업로드 훅 (단건 / 다건)
-    const { mutateAsync: uploadSingle } = useImageUpload();
-    const { mutateAsync: uploadMulti } = useMultiImageUpload();
+
+  // 이미지 업로드 훅 (단건 / 다건)
+  const { mutateAsync: uploadSingle } = useImageUpload();
+  const { mutateAsync: uploadMulti } = useMultiImageUpload();
 
   // ✅ 기존 게시글 조회 (수정 모드일 때만)
   const {
@@ -61,10 +63,17 @@ const UploadPage: React.FC = () => {
     index: number | null;
   }>({ visible: false, x: 0, y: 0, index: null });
 
+  // ✅ 에디터 픽 상태
+  const [editorPick, setEditorPick] = useState(false);
+
   // React Query 훅들
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
   const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
+  const {
+    mutate: setEditorPickMutate,
+    isPending: isSettingEditorPick,
+  } = useSetEditorPick();
 
   // ✅ 수정 모드일 때, 기존 게시글 데이터를 폼에 세팅
   useEffect(() => {
@@ -79,6 +88,9 @@ const UploadPage: React.FC = () => {
       setSelectedIndex(0);
       setFiles([]); // 서버 URL이므로 files 비움
     }
+
+    // ✅ 에디터 픽 초기값
+    setEditorPick(!!post.editorPick);
   }, [isEdit, post]);
 
   // 이미지 선택(미리보기 + 파일 보관)
@@ -142,8 +154,7 @@ const UploadPage: React.FC = () => {
   };
 
   // blob만 S3 업로드해서 http(s)로 치환
-   // blob만 S3 업로드해서 http(s)로 치환
-   async function ensureUploadedUrls(): Promise<string[]> {
+  async function ensureUploadedUrls(): Promise<string[]> {
     if (!selectedImages.length) return [];
 
     // 현재 선택된 이미지들 중에서 blob인 것들의 인덱스 모으기
@@ -156,10 +167,6 @@ const UploadPage: React.FC = () => {
 
     // 새로 올린 이미지(blob)가 있을 때만 업로드 수행
     if (blobIdxs.length > 0) {
-      // files 배열은 "blob 추가 순서"대로만 쌓여 있음
-      // 삭제 시에도 blob 순서 기준으로 splice 하고 있으니까
-      // files[0] ~ files[files.length-1] = blobIdxs 순서와 1:1 매칭된다고 보면 됨
-
       if (blobIdxs.length === 1) {
         // 사진 1장일 때: 단건 업로드 훅 사용 (File -> string)
         const file = files[0]; // 유일한 blob 파일
@@ -190,7 +197,6 @@ const UploadPage: React.FC = () => {
     return result;
   }
 
-
   // 임시 저장
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
@@ -210,8 +216,8 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    // ⚠️ 여기서는 새 글 기준 로직.
-    // 수정 모드일 때는 별도 update API가 있으면 거기로 보내야 함.
+    // 현재 구현은 새 글 기준 saveDraft( { dto } )
+    // 수정 모드에서 id까지 보내는 버전이면 { id: postId, dto } 로 바꾸면 됨.
     saveDraft(
       { dto },
       {
@@ -222,6 +228,29 @@ const UploadPage: React.FC = () => {
         onError: (err) => {
           console.error("임시 저장 실패:", err);
           alert("임시 저장 중 오류가 발생했습니다.");
+        },
+      }
+    );
+  };
+
+  // 에디터 픽 토글
+  const handleToggleEditorPick = () => {
+    if (!postId) return;
+
+    setEditorPickMutate(
+      { postId, editorPick: !editorPick },
+      {
+        onSuccess: (res) => {
+          setEditorPick(res.editorPick!);
+          alert(
+            res.editorPick
+              ? "에디터 픽으로 설정되었습니다."
+              : "에디터 픽이 해제되었습니다."
+          );
+        },
+        onError: (err) => {
+          console.error("에디터 픽 설정 실패:", err);
+          alert("에디터 픽 설정 중 오류가 발생했습니다.");
         },
       }
     );
@@ -246,7 +275,6 @@ const UploadPage: React.FC = () => {
       postStatus: "PUBLISHED",
     };
 
-    // ⚠️ isEdit일 때는 "수정 API"가 따로 있으면 그걸 호출해야 정상적인 업데이트가 됨
     uploadPost(dto, {
       onSuccess: (res) => {
         alert(
@@ -469,13 +497,34 @@ const UploadPage: React.FC = () => {
 
             {/* 하단 버튼 */}
             <div className="text-medium lg:text-base flex gap-4 mt-5 justify-between">
-              <button
-                onClick={handleSaveDraft}
-                disabled={isSavingDraft}
-                className="border hover:bg-gray-100 active:shadow-md transition border-gray-300 px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
-              >
-                {isSavingDraft ? "저장 중..." : "임시 저장"}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSaveDraft}
+                  disabled={isSavingDraft}
+                  className="border hover:bg-gray-100 active:shadow-md transition border-gray-300 px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer"
+                >
+                  {isSavingDraft ? "저장 중..." : "임시 저장"}
+                </button>
+
+                {/* ✅ 수정 모드에서만 에디터 픽 버튼 표시 */}
+                {isEdit && (
+                  <button
+                    onClick={handleToggleEditorPick}
+                    disabled={isSettingEditorPick}
+                    className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
+                      editorPick
+                        ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
+                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {isSettingEditorPick
+                      ? "처리 중..."
+                      : editorPick
+                      ? "에디터 픽 해제"
+                      : "에디터 픽 지정"}
+                  </button>
+                )}
+              </div>
 
               <div className="flex gap-3">
                 <button
