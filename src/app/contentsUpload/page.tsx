@@ -16,7 +16,6 @@ import { usePost } from "@/features/posts/hooks/usePost"; // ✅ 게시글 조�
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
-// import { useSetEditorPick } from "@/features/posts/hooks/admin/useSetEditorPick";
 import { useSetEditorPick } from "@/features/posts/hooks/useSetEditorPick";
 
 // 업로드 유틸
@@ -89,7 +88,7 @@ const UploadPage: React.FC = () => {
       setFiles([]); // 서버 URL이므로 files 비움
     }
 
-    // ✅ 에디터 픽 초기값
+    // ✅ 에디터 픽 초기값 세팅
     setEditorPick(!!post.editorPick);
   }, [isEdit, post]);
 
@@ -197,7 +196,7 @@ const UploadPage: React.FC = () => {
     return result;
   }
 
-  // 임시 저장
+  // 임시 저장 (새 글 + 수정 모드 둘 다 처리)
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
       alert("제목과 카테고리를 입력해주세요.");
@@ -216,10 +215,9 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    // 현재 구현은 새 글 기준 saveDraft( { dto } )
-    // 수정 모드에서 id까지 보내는 버전이면 { id: postId, dto } 로 바꾸면 됨.
+    // ✅ 새 글 vs 수정 모드 둘 다 처리
     saveDraft(
-      { dto },
+      { id: postId, dto },
       {
         onSuccess: (res) => {
           alert("임시 저장 완료! 📝");
