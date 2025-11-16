@@ -25,6 +25,8 @@ const ContentManagementPage = () => {
   const router = useRouter();
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const { mutate: deletePostMutate, isPending: isDeleting } = useDeletePost();
+
 
 
     // 삭제 버튼 누르면 모달 오픈
@@ -34,11 +36,25 @@ const ContentManagementPage = () => {
     };
 
       // 모달에서 "삭제" 누르면 실행
-  const confirmDelete = () => {
-    if (!deleteTargetId) return;
-    deletePostMutate(deleteTargetId);
-    setDeleteModalOpen(false);
-  };
+// 모달에서 "삭제" 누르면 실행
+const confirmDelete = () => {
+  if (deleteTargetId == null || isDeleting) return;
+
+  deletePostMutate(deleteTargetId, {
+    onSuccess: () => {
+      // ✅ 프론트 리스트에서도 바로 제거
+      setPosts((prev) => prev.filter((p) => p.id !== deleteTargetId));
+
+      // ✅ 모달/타겟 초기화
+      setDeleteModalOpen(false);
+      setDeleteTargetId(null);
+    },
+    onError: (err) => {
+      console.error(err);
+      alert("삭제 중 오류가 발생했습니다.");
+    },
+  });
+};
   // ✅ 게시물 데이터 불러오기
   useEffect(() => {
     const loadPosts = async () => {
@@ -80,21 +96,6 @@ const ContentManagementPage = () => {
   const currentData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  // ✅ 삭제 훅
-  const { mutate: deletePostMutate, isPending: isDeleting } = useDeletePost();
-
-  // ✅ 삭제 핸들러
-  const handleDelete = (id: number) => {
-    if (!confirm("정말 이 콘텐츠를 삭제하시겠습니까?")) return;
-    if (isDeleting) return;
-
-    deletePostMutate(id, {
-      onError: (err) => {
-        console.error(err);
-        alert("삭제 중 오류가 발생했습니다.");
-      },
-    });
-  };
   return (
     <main className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
@@ -174,16 +175,7 @@ const ContentManagementPage = () => {
               "visibility",
               "actions",
             ]}
-            // columnWidths={[
-            //   "40px",
-            //   "0.7fr",
-            //   "3.9fr",
-            //   "1fr",
-            //   "1fr",
-            //   "1fr",
-            //   "60px",
-            //   "40px",
-            // ]}
+    
             showHeader={true}
             columnLabels={[
               "번호",
