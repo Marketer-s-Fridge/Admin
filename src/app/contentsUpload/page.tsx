@@ -10,7 +10,7 @@ import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
-import { usePost } from "@/features/posts/hooks/usePost"; // ✅ 게시글 조회
+import { usePost } from "@/features/posts/hooks/usePost";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
@@ -55,12 +55,6 @@ const UploadPage: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState("");
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    index: number | null;
-  }>({ visible: false, x: 0, y: 0, index: null });
 
   // ✅ 에디터 픽 상태
   const [editorPick, setEditorPick] = useState(false);
@@ -69,10 +63,8 @@ const UploadPage: React.FC = () => {
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
   const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
-  const {
-    mutate: setEditorPickMutate,
-    isPending: isSettingEditorPick,
-  } = useSetEditorPick();
+  const { mutate: setEditorPickMutate, isPending: isSettingEditorPick } =
+    useSetEditorPick();
 
   // ✅ 수정 모드일 때, 기존 게시글 데이터를 폼에 세팅
   useEffect(() => {
@@ -108,23 +100,11 @@ const UploadPage: React.FC = () => {
     setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // 우클릭 컨텍스트 메뉴
-  const handleContextMenu = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    setContextMenu({
-      visible: true,
-      x: rect.right + window.scrollX - 10,
-      y: rect.bottom + window.scrollY - 10,
-      index,
-    });
-  };
+  // ✅ 개별 이미지 삭제(미리보기와 files 동기화)
+  const handleDeleteImage = (index: number, e?: React.MouseEvent) => {
+    e?.stopPropagation(); // 썸네일 클릭(선택/모달 오픈)과 분리
 
-  // 이미지 삭제(미리보기와 files 동기화)
-  const handleDeleteImage = () => {
-    if (contextMenu.index === null) return;
-    const idx = contextMenu.index;
-
+    const idx = index;
     const removedUrl = selectedImages[idx];
 
     const newImages = [...selectedImages];
@@ -149,7 +129,6 @@ const UploadPage: React.FC = () => {
       if (prev > idx) return prev - 1;
       return prev;
     });
-    setContextMenu({ visible: false, x: 0, y: 0, index: null });
   };
 
   // blob만 S3 업로드해서 http(s)로 치환
@@ -215,7 +194,6 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    // ✅ 새 글 vs 수정 모드 둘 다 처리
     saveDraft(
       { id: postId, dto },
       {
@@ -239,7 +217,7 @@ const UploadPage: React.FC = () => {
       { postId, editorPick: !editorPick },
       {
         onSuccess: (res) => {
-          setEditorPick(res.editorPick!);
+          setEditorPick(!!res.editorPick);
           alert(
             res.editorPick
               ? "에디터 픽으로 설정되었습니다."
@@ -378,7 +356,7 @@ const UploadPage: React.FC = () => {
           {/* 왼쪽 이미지 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
-              <div className="hidden md:flex relative w-full justify-center mb-4">
+              <div className="hidden lg:flex relative w-full justify-center mb-4">
                 {selectedImages.length > 0 ? (
                   <>
                     <img
@@ -401,44 +379,36 @@ const UploadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 썸네일 */}
+              {/* 썸네일 리스트 + 개별 삭제 버튼 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {selectedImages.map((url, i) => (
-                  <img
+                  <div
                     key={i}
-                    src={url}
+                    className={`relative w-[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
+                      selectedIndex === i ? "ring-2 ring-red-500" : ""
+                    }`}
                     onClick={() => {
                       setSelectedIndex(i);
                       setModalImageUrl(url);
                       setShowImageModal(true);
                     }}
-                    onContextMenu={(e) => handleContextMenu(e, i)}
-                    className={`w-[16%] aspect-[3/4] rounded object-cover cursor-pointer ${
-                      selectedIndex === i ? "ring-2 ring-red-500" : ""
-                    }`}
-                    alt={`썸네일-${i + 1}`}
-                  />
+                  >
+                    <img
+                      src={url}
+                      className="w-full h-full object-cover"
+                      alt={`썸네일-${i + 1}`}
+                    />
+                    {/* 삭제(X) 버튼 */}
+                    <button
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] flex items-center justify-center"
+                      onClick={(e) => handleDeleteImage(i, e)}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
-
-              {/* 삭제 메뉴 */}
-              {contextMenu.visible && (
-                <div
-                  className="cursor-pointer absolute z-50 bg-white shadow-md rounded-lg flex items-center px-3 py-2 text-xs"
-                  style={{
-                    top: `${contextMenu.y}px`,
-                    left: `${contextMenu.x}px`,
-                  }}
-                  onClick={handleDeleteImage}
-                >
-                  <img
-                    src="/icons/trash-2.png"
-                    alt="삭제"
-                    className="w-4 h-4 mr-2"
-                  />
-                  <span className="text-gray-700 font-semibold">삭제</span>
-                </div>
-              )}
             </div>
 
             {/* 업로드 버튼 */}
@@ -505,23 +475,22 @@ const UploadPage: React.FC = () => {
                 </button>
 
                 {/* ✅ 수정 모드에서만 에디터 픽 버튼 표시 */}
-                {isEdit && (
-                  <button
-                    onClick={handleToggleEditorPick}
-                    disabled={isSettingEditorPick}
-                    className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
-                      editorPick
-                        ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {isSettingEditorPick
-                      ? "처리 중..."
-                      : editorPick
-                      ? "에디터 픽 해제"
-                      : "에디터 픽 지정"}
-                  </button>
-                )}
+
+                <button
+                  onClick={handleToggleEditorPick}
+                  disabled={isSettingEditorPick}
+                  className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
+                    editorPick
+                      ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
+                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {isSettingEditorPick
+                    ? "처리 중..."
+                    : editorPick
+                    ? "에디터 픽 해제"
+                    : "에디터 픽 지정"}
+                </button>
               </div>
 
               <div className="flex gap-3">

@@ -10,14 +10,13 @@ import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
-import { usePost } from "@/features/posts/hooks/usePost"; // ✅ 게시글 조회
+import { usePost } from "@/features/posts/hooks/usePost";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
 import { useSetEditorPick } from "@/features/posts/hooks/useSetEditorPick";
-
 
 // 업로드 유틸
 import {
@@ -26,9 +25,9 @@ import {
 } from "@/features/posts/hooks/useImageUpload";
 
 const UploadPage: React.FC = () => {
-  // ✅ [id] 라우트면 이렇게!
-  const params = useParams<{ id: string }>();
-  const rawId = params.id; // "123"
+  // ✅ URL 파라미터에서 id 읽기 ([[...id]] 대응)
+  const params = useParams<{ id?: string[] }>();
+  const rawId = params?.id?.[0]; // /admin/contentsUpload/123 → ["123"]
   const postId = rawId ? Number(rawId) : undefined;
   const isEdit = !!postId;
 
@@ -56,12 +55,6 @@ const UploadPage: React.FC = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [modalImageUrl, setModalImageUrl] = useState("");
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    x: number;
-    y: number;
-    index: number | null;
-  }>({ visible: false, x: 0, y: 0, index: null });
 
   // ✅ 에디터 픽 상태
   const [editorPick, setEditorPick] = useState(false);
@@ -109,23 +102,11 @@ const UploadPage: React.FC = () => {
     setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // 우클릭 컨텍스트 메뉴
-  const handleContextMenu = (e: React.MouseEvent, index: number) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    setContextMenu({
-      visible: true,
-      x: rect.right + window.scrollX - 10,
-      y: rect.bottom + window.scrollY - 10,
-      index,
-    });
-  };
+  // ✅ 개별 이미지 삭제(미리보기와 files 동기화)
+  const handleDeleteImage = (index: number, e?: React.MouseEvent) => {
+    e?.stopPropagation(); // 썸네일 클릭(선택/모달 오픈)과 분리
 
-  // 이미지 삭제(미리보기와 files 동기화)
-  const handleDeleteImage = () => {
-    if (contextMenu.index === null) return;
-    const idx = contextMenu.index;
-
+    const idx = index;
     const removedUrl = selectedImages[idx];
 
     const newImages = [...selectedImages];
@@ -150,7 +131,6 @@ const UploadPage: React.FC = () => {
       if (prev > idx) return prev - 1;
       return prev;
     });
-    setContextMenu({ visible: false, x: 0, y: 0, index: null });
   };
 
   // blob만 S3 업로드해서 http(s)로 치환
@@ -167,10 +147,6 @@ const UploadPage: React.FC = () => {
 
     // 새로 올린 이미지(blob)가 있을 때만 업로드 수행
     if (blobIdxs.length > 0) {
-      // files 배열은 "blob 추가 순서"대로만 쌓여 있음
-      // 삭제 시에도 blob 순서 기준으로 splice 하고 있으니까
-      // files[0] ~ files[files.length-1] = blobIdxs 순서와 1:1 매칭된다고 보면 됨
-
       if (blobIdxs.length === 1) {
         // 사진 1장일 때: 단건 업로드 훅 사용 (File -> string)
         const file = files[0]; // 유일한 blob 파일
@@ -201,7 +177,7 @@ const UploadPage: React.FC = () => {
     return result;
   }
 
-  // 임시 저장
+  // 임시 저장 (새 글 + 수정 모드 둘 다 처리)
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
       alert("제목과 카테고리를 입력해주세요.");
@@ -220,7 +196,6 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    // ✅ 새 글 vs 수정 모드 둘 다 처리
     saveDraft(
       { id: postId, dto },
       {
@@ -244,7 +219,7 @@ const UploadPage: React.FC = () => {
       { postId, editorPick: !editorPick },
       {
         onSuccess: (res) => {
-          setEditorPick(res.editorPick!);
+          setEditorPick(!!res.editorPick);
           alert(
             res.editorPick
               ? "에디터 픽으로 설정되었습니다."
@@ -383,7 +358,7 @@ const UploadPage: React.FC = () => {
           {/* 왼쪽 이미지 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
-              <div className="hidden md:flex relative w-full justify-center mb-4">
+              <div className="hidden lg:flex relative w-full justify-center mb-4">
                 {selectedImages.length > 0 ? (
                   <>
                     <img
@@ -406,44 +381,36 @@ const UploadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 썸네일 */}
+              {/* 썸네일 리스트 + 개별 삭제 버튼 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {selectedImages.map((url, i) => (
-                  <img
+                  <div
                     key={i}
-                    src={url}
+                    className={`relative w-[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
+                      selectedIndex === i ? "ring-2 ring-red-500" : ""
+                    }`}
                     onClick={() => {
                       setSelectedIndex(i);
                       setModalImageUrl(url);
                       setShowImageModal(true);
                     }}
-                    onContextMenu={(e) => handleContextMenu(e, i)}
-                    className={`w-[16%] aspect-[3/4] rounded object-cover cursor-pointer ${
-                      selectedIndex === i ? "ring-2 ring-red-500" : ""
-                    }`}
-                    alt={`썸네일-${i + 1}`}
-                  />
+                  >
+                    <img
+                      src={url}
+                      className="w-full h-full object-cover"
+                      alt={`썸네일-${i + 1}`}
+                    />
+                    {/* 삭제(X) 버튼 */}
+                    <button
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[10px] flex items-center justify-center"
+                      onClick={(e) => handleDeleteImage(i, e)}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
               </div>
-
-              {/* 삭제 메뉴 */}
-              {contextMenu.visible && (
-                <div
-                  className="cursor-pointer absolute z-50 bg-white shadow-md rounded-lg flex items-center px-3 py-2 text-xs"
-                  style={{
-                    top: `${contextMenu.y}px`,
-                    left: `${contextMenu.x}px`,
-                  }}
-                  onClick={handleDeleteImage}
-                >
-                  <img
-                    src="/icons/trash-2.png"
-                    alt="삭제"
-                    className="w-4 h-4 mr-2"
-                  />
-                  <span className="text-gray-700 font-semibold">삭제</span>
-                </div>
-              )}
             </div>
 
             {/* 업로드 버튼 */}
