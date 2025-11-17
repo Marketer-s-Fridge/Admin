@@ -180,12 +180,17 @@ export const setEditorPick = async (
   postId: number,
   editorPick: boolean
 ): Promise<PostResponseDto> => {
-  console.log("⭐ [에디터 픽 설정 요청]", { postId, editorPick });
+  console.log(`[EditorPick] PATCH /api/posts/${postId}/editor-pick`, {
+    postId,
+    editorPick,
+  });
+
   const res = await api.patch<PostResponseDto>(
     `/api/posts/${postId}/editor-pick`,
     { editorPick }
   );
-  console.log("✅ [에디터 픽 설정 성공]", res.data);
+
+  console.log("[EditorPick] Response:", res.data);
   return res.data;
 };
 

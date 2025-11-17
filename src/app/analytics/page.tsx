@@ -14,15 +14,13 @@ import DateRangePickerModal from "@/components/dateRangePickerModal";
 import Image from "next/image";
 import CustomDropdown2A11Y from "@/components/customDropdown2";
 
-// ✅ 게시글 조회 훅 (PUBLISHED 상태만 사용)
-// import { usePostsByStatus } from "@/features/posts/hooks/usePostsByStatus";
-// import type { PostStatus } from "@/features/posts/api/postsApi/types"; // PostStatus 타입
 import type { PostStatus } from "@/features/posts/api/postsApi";
 import { usePostsByStatus } from "@/features/posts/hooks/usePostByStatus";
+
 interface AnalyticsItem extends AdminContentItem {
   views: number;
-  clicks: number;
-  engagementRate: string; // "12.6%" 형태
+  bookmarks: number;
+  engagementRate: string; // "12.6%" 형태 (조회수 대비 북마크 비율)
 }
 
 const PAGE_SIZE = 8; // 한 페이지 당 8개
@@ -43,7 +41,7 @@ const AnalyticsPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [sortOption, setSortOption] = useState<string>("클릭수 높은 순");
+  const [sortOption, setSortOption] = useState<string>("반응률 높은 순");
   const [menuOpen, setMenuOpen] = useState(false);
 
   // ✅ PUBLISHED 상태 게시글들 조회
@@ -59,9 +57,9 @@ const AnalyticsPage = () => {
 
     return posts.map((post) => {
       const views = post.viewCount ?? 0;
-      const clicks = post.clickCount ?? 0;
+      const bookmarks = post.bookmarkCount ?? 0;
       const engagement =
-        views > 0 ? `${((clicks / views) * 100).toFixed(1)}%` : "0.0%";
+        views > 0 ? `${((bookmarks / views) * 100).toFixed(1)}%` : "0.0%";
 
       return {
         id: post.id,
@@ -69,7 +67,7 @@ const AnalyticsPage = () => {
         date: formatDate(post.publishedAt || post.createdAt),
         image: post.images?.[0] || "/images/default-thumbnail.jpg", // 썸네일 없을 때 기본 이미지
         views,
-        clicks,
+        bookmarks,
         engagementRate: engagement,
       };
     });
@@ -87,9 +85,9 @@ const AnalyticsPage = () => {
       switch (sortOption) {
         case "조회수 높은 순":
           return b.views - a.views;
-        case "클릭수 높은 순":
-          return b.clicks - a.clicks;
-        case "반응수 높은 순":
+        case "북마크수 높은 순":
+          return b.bookmarks - a.bookmarks;
+        case "반응률 높은 순":
           return parseFloat(b.engagementRate) - parseFloat(a.engagementRate);
         default:
           // 기본: 번호(게시글 id) 내림차순 = 최신순이라 가정
@@ -108,7 +106,7 @@ const AnalyticsPage = () => {
     return filteredData.slice(start, end);
   }, [filteredData, currentPage]);
 
-  // 페이지 변경 시 목록 길이보다 페이지가 커지면 1페이지로 리셋해도 됨 (필요시)
+  // 페이지 변경 시 목록 길이보다 페이지가 커지면 1페이지로 리셋
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(1);
   }, [totalPages, currentPage]);
@@ -147,7 +145,7 @@ const AnalyticsPage = () => {
             <div className="pl-2">
               <CustomDropdown2A11Y
                 label={sortOption}
-                options={["클릭수 높은 순", "반응수 높은 순", "조회수 높은 순"]}
+                options={["반응률 높은 순", "조회수 높은 순", "북마크수 높은 순"]}
                 onSelect={(value) => {
                   setSortOption(value);
                   setCurrentPage(1); // 정렬 바뀔 때 1페이지로
@@ -161,7 +159,9 @@ const AnalyticsPage = () => {
 
         {/* ✅ 로딩 / 에러 처리 */}
         {isLoading && (
-          <div className="py-10 text-center text-gray-500">데이터 불러오는 중...</div>
+          <div className="py-10 text-center text-gray-500">
+            데이터 불러오는 중...
+          </div>
         )}
         {isError && !isLoading && (
           <div className="py-10 text-center text-red-500">
@@ -179,7 +179,7 @@ const AnalyticsPage = () => {
                 "title",
                 "date",
                 "views",
-                "clicks",
+                "bookmarks",
                 "engagementRate",
               ]}
               columnLabels={[
@@ -188,8 +188,8 @@ const AnalyticsPage = () => {
                 "콘텐츠",
                 "업로드 날짜",
                 "조회수",
-                "클릭수",
-                "반응률",
+                "북마크 수",
+                "북마크율",
               ]}
               showHeader={true}
             />

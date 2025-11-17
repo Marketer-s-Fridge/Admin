@@ -1,16 +1,12 @@
-"use client";
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import localFont from "next/font/local";
 import "react-calendar/dist/Calendar.css";
 import Providers from "./providers";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 
 const pretendard = localFont({
-  src: "../fonts/Pretendard-Regular.ttf",
+  src: "../fonts/Pretendard-Regular.ttf", // 파일 경로 확인!
   display: "swap",
   variable: "--font-pretendard",
 });
@@ -18,7 +14,7 @@ const pretendard = localFont({
 const playFair = localFont({
   src: "../fonts/PlayfairDisplay-Regular.ttf",
   display: "swap",
-  variable: "--font-playfair",
+  variable: "--font-playfair", // 👉 variable로 등록
 });
 
 const geistSans = Geist({
@@ -38,49 +34,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const [isAllowed, setIsAllowed] = useState(true);
-
-  useEffect(() => {
-    // admin 페이지 접근인 경우만 체크
-    const isAdminRoute = pathname.startsWith("/admin");
-
-    if (!isAdminRoute) {
-      setIsAllowed(true);
-      return;
-    }
-
-    // admin 페이지 접근 시 localStorage에서 id 확인
-    const user = localStorage.getItem("user");
-    if (!user) {
-      setIsAllowed(false);
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(user);
-      const id = parsed?.id || parsed?.username || parsed?.email;
-
-      if (id?.toLowerCase() === "mf-admin") {
-        setIsAllowed(true);
-      } else {
-        setIsAllowed(false);
-      }
-    } catch {
-      setIsAllowed(false);
-    }
-  }, [pathname]);
-
+}>) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playFair.variable} ${pretendard.variable} font-pretendard antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playFair.variable} ${pretendard.variable}     font-pretendard 
+        antialiased`}
       >
-        {/* admin인데 권한 없는 경우 → 아무것도 렌더링 하지 않음 */}
-        {isAllowed ? <Providers>{children}</Providers> : null}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

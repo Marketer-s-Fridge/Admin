@@ -123,5 +123,8 @@ export interface PostResponseDto {
 
   /** 클릭 수 (Call-to-action 버튼 또는 링크 클릭 등) */
   clickCount: number;
+
   editorPick?: boolean;
+
+  bookmarkCount?: number;
 }
