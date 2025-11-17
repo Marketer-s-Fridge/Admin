@@ -11,6 +11,7 @@ import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
 import { usePost } from "@/features/posts/hooks/usePost";
+import { X } from "lucide-react";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
@@ -25,11 +26,11 @@ import {
 } from "@/features/posts/hooks/useImageUpload";
 
 const UploadPage: React.FC = () => {
-// ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
-const params = useParams<{ id: string }>();
-const rawId = params.id; // 예: "21"
-const postId = Number(rawId);
-const isEdit = true; // 이 페이지는 항상 수정
+  // ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
+  const params = useParams<{ id: string }>();
+  const rawId = params.id; // 예: "21"
+  const postId = Number(rawId);
+  const isEdit = true; // 이 페이지는 항상 수정
 
   // 이미지 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
@@ -63,10 +64,8 @@ const isEdit = true; // 이 페이지는 항상 수정
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
   const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
-  const {
-    mutate: setEditorPickMutate,
-    isPending: isSettingEditorPick,
-  } = useSetEditorPick();
+  const { mutate: setEditorPickMutate, isPending: isSettingEditorPick } =
+    useSetEditorPick();
 
   // ✅ 수정 모드일 때, 기존 게시글 데이터를 폼에 세팅
   useEffect(() => {
@@ -402,11 +401,12 @@ const isEdit = true; // 이 페이지는 항상 수정
                     />
                     {/* 삭제(X) 버튼 */}
                     <button
-                      className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
+                      className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
+                      aria-label="이미지 삭제"
                     >
-                      x
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}

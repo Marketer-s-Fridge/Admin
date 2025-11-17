@@ -11,6 +11,7 @@ import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
 import { usePost } from "@/features/posts/hooks/usePost";
+import { X } from "lucide-react";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
@@ -400,11 +401,12 @@ const UploadPage: React.FC = () => {
                     />
                     {/* 삭제(X) 버튼 */}
                     <button
-                      className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white text-[11px] flex items-center justify-center"
+                      className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
                       onClick={(e) => handleDeleteImage(i, e)}
                       type="button"
+                      aria-label="이미지 삭제"
                     >
-                      x
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
