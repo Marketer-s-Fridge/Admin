@@ -173,7 +173,7 @@ const AnalyticsPage = () => {
                 alt="달력"
                 width={30}
                 height={20}
-                src="/icons/calendar1.png"
+                src="/icons/calendarIcon.png"
                 className="absolute w-5 h-5 right-2.5 top-2"
               />
             </div>
