@@ -21,6 +21,7 @@ interface AnalyticsItem extends AdminContentItem {
   views: number;
   bookmarks: number;
   engagementRate: string; // "12.6%" 형태 (조회수 대비 북마크 비율)
+  rawDate: string | null; // 실제 날짜 비교용
 }
 
 const PAGE_SIZE = 8; // 한 페이지 당 8개
@@ -44,6 +45,10 @@ const AnalyticsPage = () => {
   const [sortOption, setSortOption] = useState<string>("반응률 높은 순");
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ✅ 기간 필터 상태 (ISO 문자열로 보관)
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
   // ✅ PUBLISHED 상태 게시글들 조회
   const {
     data: posts,
@@ -61,26 +66,55 @@ const AnalyticsPage = () => {
       const engagement =
         views > 0 ? `${((bookmarks / views) * 100).toFixed(1)}%` : "0.0%";
 
+      const rawDate = post.publishedAt || post.createdAt || null;
+
       return {
         id: post.id,
         title: post.title,
-        date: formatDate(post.publishedAt || post.createdAt),
+        date: formatDate(rawDate),
         image: post.images?.[0] || "/images/default-thumbnail.jpg", // 썸네일 없을 때 기본 이미지
         views,
         bookmarks,
         engagementRate: engagement,
+        rawDate,
       };
     });
   }, [posts]);
 
-  // ✅ 검색 + 정렬 적용
+  // ✅ 기간 + 검색 + 정렬 적용
   const filteredData = useMemo(() => {
     const keyword = search.toLowerCase();
 
-    const searched = analyticsData.filter((item) =>
+    // 1) 기간 필터
+    const byDate = analyticsData.filter((item) => {
+      if (!startDate && !endDate) return true; // 기간 선택 안 했으면 전체
+
+      if (!item.rawDate) return false;
+      const time = new Date(item.rawDate).getTime();
+      if (Number.isNaN(time)) return false;
+
+      // start ~ end(포함)
+      if (startDate) {
+        const s = new Date(startDate);
+        s.setHours(0, 0, 0, 0);
+        if (time < s.getTime()) return false;
+      }
+
+      if (endDate) {
+        const e = new Date(endDate);
+        e.setHours(23, 59, 59, 999);
+        if (time > e.getTime()) return false;
+      }
+
+      return true;
+    });
+
+    // 2) 검색어 필터
+    const searched = byDate.filter((item) =>
       item.title.toLowerCase().includes(keyword)
     );
 
+    // 3) 정렬
     const sorted = [...searched].sort((a, b) => {
       switch (sortOption) {
         case "조회수 높은 순":
@@ -96,7 +130,7 @@ const AnalyticsPage = () => {
     });
 
     return sorted;
-  }, [analyticsData, search, sortOption]);
+  }, [analyticsData, search, sortOption, startDate, endDate]);
 
   // ✅ 페이지네이션 적용
   const totalPages = Math.max(1, Math.ceil(filteredData.length / PAGE_SIZE));
@@ -131,7 +165,9 @@ const AnalyticsPage = () => {
                 onClick={() => setShowCalendar(true)}
                 className="cursor-pointer border-gray-300 border-1 rounded-lg w-30 text-gray-500 text-[12px] lg:text-sm text-justify px-2.5"
               >
-                기간 선택
+                {startDate && endDate
+                  ? `${formatDate(startDate)} ~ ${formatDate(endDate)}`
+                  : "기간 선택"}
               </button>
               <Image
                 alt="달력"
@@ -208,6 +244,12 @@ const AnalyticsPage = () => {
       <DateRangePickerModal
         visible={showCalendar}
         onClose={() => setShowCalendar(false)}
+        onApply={(start, end) => {
+          setStartDate(start ? start.toISOString() : null);
+          setEndDate(end ? end.toISOString() : null);
+          setCurrentPage(1);
+          setShowCalendar(false);
+        }}
       />
     </main>
   );

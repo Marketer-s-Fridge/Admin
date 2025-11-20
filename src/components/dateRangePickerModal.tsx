@@ -16,6 +16,7 @@ import {
 interface Props {
   visible: boolean;
   onClose: () => void;
+  onApply?: (start: Date | null, end: Date | null) => void;
 }
 
 const quickRanges = [
@@ -31,7 +32,7 @@ const quickRanges = [
   "지난달",
 ];
 
-const DateRangePickerModal = ({ visible, onClose }: Props) => {
+const DateRangePickerModal = ({ visible, onClose, onApply }: Props) => {
   const [selectedQuick, setSelectedQuick] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -77,7 +78,7 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
         start = startOfYear(today);
         end = endOfYear(today);
         break;
-      case "지난주":
+      case "지난주": {
         const lastWeekStart = subDays(
           startOfWeek(today, { weekStartsOn: 0 }),
           7
@@ -85,7 +86,8 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
         start = lastWeekStart;
         end = addDays(lastWeekStart, 6);
         break;
-      case "지난달":
+      }
+      case "지난달": {
         const lastMonth = new Date(
           today.getFullYear(),
           today.getMonth() - 1,
@@ -94,6 +96,7 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
         start = startOfMonth(lastMonth);
         end = endOfMonth(lastMonth);
         break;
+      }
     }
 
     setSelectedQuick(label);
@@ -125,7 +128,7 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
     const lastDay = new Date(year, month + 1, 0);
     const startWeekday = firstDay.getDay();
 
-    const days = [];
+    const days: (Date | null)[] = [];
     for (let i = 0; i < startWeekday; i++) days.push(null);
     for (let day = 1; day <= lastDay.getDate(); day++) {
       days.push(new Date(year, month, day));
@@ -182,6 +185,12 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
     );
   };
 
+  const handleApply = () => {
+    // 기간 확정 콜백
+    onApply?.(startDate, endDate);
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-center px-2">
       <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-3xl">
@@ -224,7 +233,7 @@ const DateRangePickerModal = ({ visible, onClose }: Props) => {
                 취소
               </button>
               <button
-                onClick={onClose}
+                onClick={handleApply}
                 className="cursor-pointer w-1/2 sm:w-40 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600"
               >
                 선택 완료
