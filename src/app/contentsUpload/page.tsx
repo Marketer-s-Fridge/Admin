@@ -108,7 +108,9 @@ const UploadPage: React.FC = () => {
 
     const newMediaItems: MediaItem[] = newFiles.map((file) => {
       const objectUrl = URL.createObjectURL(file);
-      const type: MediaType = file.type.startsWith("video/") ? "video" : "image";
+      const type: MediaType = file.type.startsWith("video/")
+        ? "video"
+        : "image";
       return { url: objectUrl, type };
     });
 
@@ -573,13 +575,13 @@ const UploadPage: React.FC = () => {
             onClick={() => setShowMediaModal(false)}
           >
             <div
-              className="max-w-[70%] max-h-[70%] rounded shadow-lg bg-black"
+              className="max-w-[90vw] max-h-[90vh] rounded shadow-lg bg-black flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
               {modalMediaType === "video" ? (
                 <video
                   src={modalMediaUrl}
-                  className="w-full h-full"
+                  className="max-w-full max-h-[90vh]"
                   controls
                   autoPlay
                 />
@@ -587,13 +589,12 @@ const UploadPage: React.FC = () => {
                 <img
                   src={modalMediaUrl}
                   alt="미리보기"
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-[90vh] object-contain"
                 />
               )}
             </div>
           </div>
         )}
-
         {/* 팝업 */}
         {showBookingPopup && (
           <BookingUploadPopup
