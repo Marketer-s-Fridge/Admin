@@ -25,14 +25,21 @@ import {
   useMultiImageUpload,
 } from "@/features/posts/hooks/useImageUpload";
 
+type MediaType = "image" | "video";
+
+interface MediaItem {
+  url: string;
+  type: MediaType;
+}
+
 const UploadPage: React.FC = () => {
   // ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
   const params = useParams<{ id: string }>();
   const rawId = params.id; // "21"
   const postId = Number(rawId); // 21
-  const isEdit = false; // 이 페이지는 항상 수정
+  const isEdit = false; // 이 페이지는 항상 수정? (현재 false로 설정돼 있음)
 
-  // 이미지 업로드 훅 (단건 / 다건)
+  // 업로드 훅 (단건 / 다건) - 이름은 image지만 파일 타입 상관없이 동작
   const { mutateAsync: uploadSingle } = useImageUpload();
   const { mutateAsync: uploadMulti } = useMultiImageUpload();
 
@@ -48,14 +55,17 @@ const UploadPage: React.FC = () => {
   const [subTitle, setSubTitle] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState("");
-  const [selectedImages, setSelectedImages] = useState<string[]>([]); // blob 또는 http(s)
+
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]); // 이미지 + 영상
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [files, setFiles] = useState<File[]>([]); // blob에 대응하는 실제 파일들
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [modalImageUrl, setModalImageUrl] = useState("");
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [modalMediaUrl, setModalMediaUrl] = useState("");
+  const [modalMediaType, setModalMediaType] = useState<MediaType>("image");
 
   // ✅ 에디터 픽 상태
   const [editorPick, setEditorPick] = useState(false);
@@ -76,7 +86,11 @@ const UploadPage: React.FC = () => {
     setCategory(post.category || "카테고리 선택");
     setContent(post.content || "");
     if (post.images && post.images.length > 0) {
-      setSelectedImages(post.images);
+      const initialMedia: MediaItem[] = post.images.map((url: string) => ({
+        url,
+        type: "image", // 기존 데이터는 전부 이미지라고 가정
+      }));
+      setMediaItems(initialMedia);
       setSelectedIndex(0);
       setFiles([]); // 서버 URL이므로 files 비움
     }
@@ -85,38 +99,45 @@ const UploadPage: React.FC = () => {
     setEditorPick(!!post.editorPick);
   }, [isEdit, post]);
 
-  // 이미지 선택(미리보기 + 파일 보관)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 이미지/영상 선택(미리보기 + 파일 보관)
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files;
     if (!f || !f.length) return;
 
     const newFiles = Array.from(f);
-    const urls = newFiles.map((file) => URL.createObjectURL(file));
 
-    setSelectedImages((prev) => {
-      const next = [...prev, ...urls];
+    const newMediaItems: MediaItem[] = newFiles.map((file) => {
+      const objectUrl = URL.createObjectURL(file);
+      const type: MediaType = file.type.startsWith("video/") ? "video" : "image";
+      return { url: objectUrl, type };
+    });
+
+    setMediaItems((prev) => {
+      const next = [...prev, ...newMediaItems];
       if (next.length && selectedIndex === null) setSelectedIndex(0);
       return next;
     });
+
     setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // ✅ 개별 이미지 삭제(미리보기와 files 동기화)
-  const handleDeleteImage = (index: number, e?: React.MouseEvent) => {
+  // ✅ 개별 미디어 삭제(미리보기와 files 동기화)
+  const handleDeleteMedia = (index: number, e?: React.MouseEvent) => {
     e?.stopPropagation(); // 썸네일 클릭(선택/모달 오픈)과 분리
 
     const idx = index;
-    const removedUrl = selectedImages[idx];
+    const removedItem = mediaItems[idx];
 
-    const newImages = [...selectedImages];
-    newImages.splice(idx, 1);
-    setSelectedImages(newImages);
+    const newItems = [...mediaItems];
+    newItems.splice(idx, 1);
+    setMediaItems(newItems);
 
-    if (removedUrl?.startsWith("blob:")) {
+    if (removedItem?.url?.startsWith("blob:")) {
       // idx 이전의 blob 개수 = files에서 지울 인덱스
-      const blobBefore = selectedImages
+      const blobBefore = mediaItems
         .slice(0, idx)
-        .filter((u) => u.startsWith("blob:")).length;
+        .filter((m) => m.url.startsWith("blob:")).length;
+
       setFiles((prev) => {
         const copy = [...prev];
         copy.splice(blobBefore, 1);
@@ -126,7 +147,7 @@ const UploadPage: React.FC = () => {
 
     setSelectedIndex((prev) => {
       if (prev === null) return null;
-      if (prev === idx) return newImages.length ? 0 : null;
+      if (prev === idx) return newItems.length ? 0 : null;
       if (prev > idx) return prev - 1;
       return prev;
     });
@@ -134,46 +155,44 @@ const UploadPage: React.FC = () => {
 
   // blob만 S3 업로드해서 http(s)로 치환
   async function ensureUploadedUrls(): Promise<string[]> {
-    if (!selectedImages.length) return [];
+    if (!mediaItems.length) return [];
 
-    // 현재 선택된 이미지들 중에서 blob인 것들의 인덱스 모으기
     const blobIdxs: number[] = [];
-    selectedImages.forEach((u, i) => {
-      if (u.startsWith("blob:")) blobIdxs.push(i);
+    mediaItems.forEach((m, i) => {
+      if (m.url.startsWith("blob:")) blobIdxs.push(i);
     });
 
     let uploaded: string[] = [];
 
-    // 새로 올린 이미지(blob)가 있을 때만 업로드 수행
     if (blobIdxs.length > 0) {
       if (blobIdxs.length === 1) {
-        // 사진 1장일 때: 단건 업로드 훅 사용 (File -> string)
         const file = files[0]; // 유일한 blob 파일
         const url = await uploadSingle(file);
         uploaded = [url];
       } else {
-        // 사진 여러 장일 때: 다건 업로드 훅 사용 (File[] -> string[])
         uploaded = await uploadMulti(files);
       }
     }
 
-    // 업로드 결과를 selectedImages 순서에 맞춰 다시 조합
-    const result: string[] = [];
+    const updatedMedia: MediaItem[] = [];
     let cursor = 0;
 
-    for (const u of selectedImages) {
-      if (u.startsWith("blob:")) {
-        // blob이었던 위치는 업로드된 URL로 치환
-        result.push(uploaded[cursor++]);
+    for (const item of mediaItems) {
+      if (item.url.startsWith("blob:")) {
+        updatedMedia.push({
+          ...item,
+          url: uploaded[cursor++],
+        });
       } else {
-        // 이미 http(s)인 경우는 그대로 유지
-        result.push(u);
+        updatedMedia.push(item);
       }
     }
 
-    setSelectedImages(result);
-    setFiles([]); // 재업로드 방지
-    return result;
+    setMediaItems(updatedMedia);
+    setFiles([]);
+
+    // 서버에는 URL 배열만 넘김 (이미지/영상 모두)
+    return updatedMedia.map((m) => m.url);
   }
 
   // 임시 저장 (새 글 + 수정 모드 둘 다 처리)
@@ -183,7 +202,7 @@ const UploadPage: React.FC = () => {
       return;
     }
 
-    const imageUrls = await ensureUploadedUrls();
+    const mediaUrls = await ensureUploadedUrls();
 
     const dto: PostRequestDto = {
       title,
@@ -191,7 +210,7 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: imageUrls,
+      images: mediaUrls,
       postStatus: "DRAFT",
     };
 
@@ -240,7 +259,7 @@ const UploadPage: React.FC = () => {
       return;
     }
 
-    const imageUrls = await ensureUploadedUrls();
+    const mediaUrls = await ensureUploadedUrls();
 
     const dto: PostRequestDto = {
       title,
@@ -248,7 +267,7 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: imageUrls,
+      images: mediaUrls,
       postStatus: "PUBLISHED",
     };
 
@@ -283,7 +302,7 @@ const UploadPage: React.FC = () => {
         ? scheduledTime.toISOString()
         : new Date(scheduledTime).toISOString();
 
-    const imageUrls = await ensureUploadedUrls();
+    const mediaUrls = await ensureUploadedUrls();
 
     const dto: PostRequestDto = {
       title,
@@ -291,7 +310,7 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: imageUrls,
+      images: mediaUrls,
       postStatus: "SCHEDULED",
       scheduledTime: formattedTime,
     };
@@ -318,12 +337,13 @@ const UploadPage: React.FC = () => {
     setSubTitle("");
     setCategory("카테고리 선택");
     setContent("");
-    setSelectedImages([]);
+    setMediaItems([]);
     setSelectedIndex(null);
     setFiles([]);
   };
 
   const mainIdx = selectedIndex ?? 0;
+  const mainItem = mediaItems[mainIdx];
 
   // 수정 모드에서 로딩/에러 처리
   if (isEdit && isPostLoading) {
@@ -354,35 +374,50 @@ const UploadPage: React.FC = () => {
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-12">
-          {/* 왼쪽 이미지 업로드 */}
+          {/* 왼쪽 미디어 업로드 */}
           <div className="flex flex-col w-full lg:w-[40%] justify-between">
             <div>
               <div className="hidden lg:flex relative w-full justify-center mb-4">
-                {selectedImages.length > 0 ? (
+                {mediaItems.length > 0 && mainItem ? (
                   <>
-                    <img
-                      src={selectedImages[mainIdx]}
-                      className="w-full aspect-[3/4] rounded object-cover"
-                      alt="대표 이미지"
-                      onClick={() => {
-                        setModalImageUrl(selectedImages[mainIdx]);
-                        setShowImageModal(true);
-                      }}
-                    />
+                    {mainItem.type === "video" ? (
+                      <video
+                        src={mainItem.url}
+                        className="w-full aspect-[3/4] rounded object-cover"
+                        controls
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalMediaUrl(mainItem.url);
+                          setModalMediaType("video");
+                          setShowMediaModal(true);
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={mainItem.url}
+                        className="w-full aspect-[3/4] rounded object-cover"
+                        alt="대표 미디어"
+                        onClick={() => {
+                          setModalMediaUrl(mainItem.url);
+                          setModalMediaType("image");
+                          setShowMediaModal(true);
+                        }}
+                      />
+                    )}
                     <div className="absolute top-3 right-3 bg-white/60 text-gray text-xs px-3 py-0.5 rounded-full">
-                      {mainIdx + 1} / {selectedImages.length}
+                      {mainIdx + 1} / {mediaItems.length}
                     </div>
                   </>
                 ) : (
                   <div className="w-full aspect-[3/4] bg-gray-100 rounded flex items-center justify-center text-gray-400">
-                    대표 이미지 미리보기
+                    대표 미리보기
                   </div>
                 )}
               </div>
 
               {/* 썸네일 리스트 + 개별 삭제 버튼 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
-                {selectedImages.map((url, i) => (
+                {mediaItems.map((item, i) => (
                   <div
                     key={i}
                     className={`relative w-[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
@@ -390,21 +425,30 @@ const UploadPage: React.FC = () => {
                     }`}
                     onClick={() => {
                       setSelectedIndex(i);
-                      setModalImageUrl(url);
-                      setShowImageModal(true);
+                      setModalMediaUrl(item.url);
+                      setModalMediaType(item.type);
+                      setShowMediaModal(true);
                     }}
                   >
-                    <img
-                      src={url}
-                      className="w-full h-full object-cover"
-                      alt={`썸네일-${i + 1}`}
-                    />
+                    {item.type === "video" ? (
+                      <video
+                        src={item.url}
+                        className="w-full h-full object-cover"
+                        muted
+                      />
+                    ) : (
+                      <img
+                        src={item.url}
+                        className="w-full h-full object-cover"
+                        alt={`썸네일-${i + 1}`}
+                      />
+                    )}
                     {/* 삭제(X) 버튼 */}
                     <button
                       className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
-                      onClick={(e) => handleDeleteImage(i, e)}
+                      onClick={(e) => handleDeleteMedia(i, e)}
                       type="button"
-                      aria-label="이미지 삭제"
+                      aria-label="미디어 삭제"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -417,15 +461,15 @@ const UploadPage: React.FC = () => {
             <div className="relative h-[48px] mt-6">
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 multiple
-                id="image-upload"
+                id="media-upload"
                 className="hidden"
-                onChange={handleImageUpload}
+                onChange={handleMediaUpload}
               />
-              <label htmlFor="image-upload">
+              <label htmlFor="media-upload">
                 <div className="absolute right-0 bottom-0 bg-[#555555] text-white text-medium lg:text-base px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer text-center">
-                  이미지 업로드
+                  이미지/영상 업로드
                 </div>
               </label>
             </div>
@@ -522,18 +566,31 @@ const UploadPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 이미지 확대 모달 */}
-        {showImageModal && (
+        {/* 이미지/영상 확대 모달 */}
+        {showMediaModal && (
           <div
             className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-xs flex justify-center items-center"
-            onClick={() => setShowImageModal(false)}
+            onClick={() => setShowMediaModal(false)}
           >
-            <img
-              src={modalImageUrl}
-              alt="미리보기"
-              className="max-w-[70%] max-h-[70%] rounded shadow-lg"
+            <div
+              className="max-w-[70%] max-h-[70%] rounded shadow-lg bg-black"
               onClick={(e) => e.stopPropagation()}
-            />
+            >
+              {modalMediaType === "video" ? (
+                <video
+                  src={modalMediaUrl}
+                  className="w-full h-full"
+                  controls
+                  autoPlay
+                />
+              ) : (
+                <img
+                  src={modalMediaUrl}
+                  alt="미리보기"
+                  className="w-full h-full object-contain"
+                />
+              )}
+            </div>
           </div>
         )}
 
