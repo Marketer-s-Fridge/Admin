@@ -66,7 +66,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
   return (
     <div className="border-t-2 border-gray-500">
       {/* ================== */}
-      {/* 데스크탑 테이블 뷰 */}
+      {/* 데스크탑 테이블 */}
       {/* ================== */}
       <div className="hidden md:block">
         {showHeader && columnLabels && (
@@ -87,7 +87,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
         )}
 
         <div className="overflow-x-auto">
-          {data.map((item) => (
+          {data.map((item, index) => (
             <div
               key={item.id}
               onClick={item.onClickRow}
@@ -100,36 +100,44 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             >
               {columns.map((col) => {
                 switch (col) {
+                  case "id":
+                    return (
+                      <div key={col}>
+                        {index + 1}
+                      </div>
+                    );
+
                   case "checkbox":
                     return showCheckbox ? (
                       <div key={col} className="flex justify-center">
                         <input
                           type="checkbox"
                           className={`
-    relative w-5 h-5 appearance-none rounded border-1 border-gray-300 cursor-pointer
-    transition-all duration-200
-    checked:bg-gray-800 checked:border-gray-800
-    before:content-[''] before:absolute before:top-[2px] before:left-[6px]
-    before:w-[6px] before:h-[10px]
-    before:border-r-2 before:border-b-2 before:border-white
-    before:rotate-45 before:scale-0 checked:before:scale-100
-    before:transition-transform before:duration-200
-  `}
+                            relative w-5 h-5 appearance-none rounded border-1 border-gray-300 cursor-pointer
+                            transition-all duration-200
+                            checked:bg-gray-800 checked:border-gray-800
+                            before:content-[''] before:absolute before:top-[2px] before:left-[6px]
+                            before:w-[6px] before:h-[10px]
+                            before:border-r-2 before:border-b-2 before:border-white
+                            before:rotate-45 before:scale-0 checked:before:scale-100
+                            before:transition-transform before:duration-200
+                          `}
                           checked={item.selected || false}
                           onChange={(e) =>
                             item.onSelectChange?.(e.target.checked)
                           }
-                          onClick={(e) => e.stopPropagation()} // 체크만 되고 row 클릭은 막음
+                          onClick={(e) => e.stopPropagation()}
                         />
                       </div>
                     ) : (
                       <div key={col} />
                     );
+
                   case "image":
                     return (
                       <div key={col}>
                         <Image
-                          src={item.image || "/images/Category-1.jpg"} // ✅ 여기!
+                          src={item.image || "/images/Category-1.jpg"}
                           alt="썸네일"
                           width={40}
                           height={40}
@@ -137,6 +145,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         />
                       </div>
                     );
+
                   case "title":
                     return (
                       <div
@@ -149,10 +158,13 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         {item.title}
                       </div>
                     );
+
                   case "date":
                     return <div key={col}>{item.date}</div>;
+
                   case "author":
                     return <div key={col}>{item.author}</div>;
+
                   case "status":
                     return (
                       <div
@@ -168,6 +180,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         {item.status}
                       </div>
                     );
+
                   case "actions":
                     return (
                       <div key={col} className="flex justify-center gap-3">
@@ -179,7 +192,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                           className="cursor-pointer w-4 h-4"
                           onClick={(e) => {
                             e.stopPropagation();
-                            item.onDelete?.(); // ✅ 여기에서 위에서 만든 handleDelete 실행됨
+                            item.onDelete?.();
                           }}
                         />
                         {item.onShare && (
@@ -190,6 +203,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                         )}
                       </div>
                     );
+
                   default:
                     return (
                       <div key={col}>
@@ -207,7 +221,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
       {/* 모바일 카드 뷰 */}
       {/* ================== */}
       <div className="block md:hidden divide-y divide-gray-200">
-        {data.map((item) => (
+        {data.map((item, rowIndex) => (
           <div
             key={item.id}
             className="flex flex-col gap-3 py-4 cursor-pointer px-2"
@@ -217,7 +231,7 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             {columns.includes("image") && (
               <div className="w-full aspect-[3/2] bg-gray-100 rounded-lg overflow-hidden">
                 <Image
-                  src={item.image || "/images/Category-1.jpg"} // ✅ 여기!
+                  src={item.image || "/images/Category-1.jpg"}
                   alt={item.title}
                   width={300}
                   height={200}
@@ -230,12 +244,15 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
             <div className="flex flex-col gap-1 text-[13px] text-gray-700">
               {columns.map((col, index) => {
                 if (col === "image" || col === "checkbox" || col === "actions")
-                  return null; // 이미 처리했거나 모바일에서 제외할 항목
+                  return null;
 
                 const label = columnLabels?.[index] || col;
-                const value = item[col as keyof AdminContentItem] ?? "-";
 
-                // status 컬러 처리
+                const rawValue =
+                  col === "id" ? rowIndex + 1 : item[col as keyof AdminContentItem];
+
+                const value = rawValue ?? "-";
+
                 if (col === "status") {
                   return (
                     <div
@@ -258,7 +275,6 @@ const AdminContentTable: React.FC<AdminContentTableProps> = ({
                   );
                 }
 
-                // 기본 필드
                 return (
                   <div
                     key={col}
