@@ -169,19 +169,16 @@ const AnalyticsPage = () => {
                   ? `${formatDate(startDate)} ~ ${formatDate(endDate)}`
                   : "기간 선택"}
               </button>
-              <Image
-                alt="달력"
-                width={30}
-                height={20}
-                src="/icons/calendarIcon.png"
-                className="absolute w-5 h-5 right-2.5 top-2"
-              />
             </div>
 
             <div className="pl-2">
               <CustomDropdown2A11Y
                 label={sortOption}
-                options={["반응률 높은 순", "조회수 높은 순", "북마크수 높은 순"]}
+                options={[
+                  "반응률 높은 순",
+                  "조회수 높은 순",
+                  "북마크수 높은 순",
+                ]}
                 onSelect={(value) => {
                   setSortOption(value);
                   setCurrentPage(1); // 정렬 바뀔 때 1페이지로
