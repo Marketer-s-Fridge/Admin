@@ -25,6 +25,10 @@ export default function CustomDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
+  useEffect(() => {
+    setSelected(label);
+  }, [label]);
+
   // ✅ 밖 클릭 시 닫기
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
