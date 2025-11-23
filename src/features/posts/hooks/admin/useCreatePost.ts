@@ -1,12 +1,16 @@
 // src/features/posts/hooks/admin/useCreatePost.ts
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createPost } from "../../api/postsApi";
-import { PostRequestDto, PostResponseDto } from "../../types";
+import { PostRequestDto } from "../../types";
 
-export function useCreatePost() {
-  const qc = useQueryClient();
-  return useMutation<PostResponseDto, Error, PostRequestDto>({
-    mutationFn: (dto) => createPost(dto),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["posts"] }),
+export type CreatePostArgs = {
+  dto: PostRequestDto;
+  postId?: number;
+  etag?: string;
+};
+
+export const useCreatePost = () => {
+  return useMutation({
+    mutationFn: (args: CreatePostArgs) => createPost(args),
   });
-}
+};

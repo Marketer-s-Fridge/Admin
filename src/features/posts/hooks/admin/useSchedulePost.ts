@@ -1,15 +1,16 @@
 // src/features/posts/hooks/admin/useSchedulePost.ts
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { schedulePost } from "../../api/postsApi";
-import { PostRequestDto, PostResponseDto } from "../../types";
+import { PostRequestDto } from "../../types";
 
-export function useSchedulePost() {
-  const queryClient = useQueryClient();
+export type SchedulePostArgs = {
+  dto: PostRequestDto;
+  postId?: number;
+  etag?: string;
+};
 
-  return useMutation<PostResponseDto, Error, PostRequestDto>({
-    mutationFn: (dto) => schedulePost(dto),   // ← 래핑
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
-    },
+export const useSchedulePost = () => {
+  return useMutation({
+    mutationFn: (args: SchedulePostArgs) => schedulePost(args),
   });
-}
+};

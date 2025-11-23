@@ -39,11 +39,11 @@ const UploadPage: React.FC = () => {
   const postId = Number(rawId);
   const isEdit = true; // 이 페이지는 항상 수정
 
-  // 업로드 훅 (단건 / 다건) - 실제로는 이미지/영상 모두 처리 가능
+  // 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
   const { mutateAsync: uploadMulti } = useMultiImageUpload();
 
-  // ✅ 기존 게시글 조회 (수정 모드일 때만)
+  // ✅ 기존 게시글 조회
   const {
     data: post,
     isLoading: isPostLoading,
@@ -55,9 +55,10 @@ const UploadPage: React.FC = () => {
   const [subTitle, setSubTitle] = useState("");
   const [content, setContent] = useState("");
   const [status, setStatus] = useState("");
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]); // 이미지 + 영상 모두
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [files, setFiles] = useState<File[]>([]); // blob에 대응하는 실제 파일들
+  const [files, setFiles] = useState<File[]>([]);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -84,7 +85,6 @@ const UploadPage: React.FC = () => {
     setCategory(post.category || "카테고리 선택");
     setContent(post.content || "");
 
-    // 기존 데이터는 현재 images 필드만 있으니 전부 image로 간주
     if (post.images && post.images.length > 0) {
       const initialMedia: MediaItem[] = post.images.map((url: string) => ({
         url,
@@ -92,14 +92,13 @@ const UploadPage: React.FC = () => {
       }));
       setMediaItems(initialMedia);
       setSelectedIndex(0);
-      setFiles([]); // 서버 URL이므로 files 비움
+      setFiles([]);
     }
 
-    // ✅ 에디터 픽 초기값 세팅
     setEditorPick(!!post.editorPick);
   }, [isEdit, post]);
 
-  // 이미지/영상 선택(미리보기 + 파일 보관)
+  // 이미지/영상 선택
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files;
     if (!f || !f.length) return;
@@ -120,13 +119,12 @@ const UploadPage: React.FC = () => {
       return next;
     });
 
-    // blob 순서 = files 순서 그대로 유지
     setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // ✅ 개별 미디어 삭제(미리보기와 files 동기화)
+  // 개별 미디어 삭제
   const handleDeleteMedia = (index: number, e?: React.MouseEvent) => {
-    e?.stopPropagation(); // 썸네일 클릭(선택/모달 오픈)과 분리
+    e?.stopPropagation();
 
     const idx = index;
     const removedItem = mediaItems[idx];
@@ -136,7 +134,6 @@ const UploadPage: React.FC = () => {
     setMediaItems(newItems);
 
     if (removedItem?.url?.startsWith("blob:")) {
-      // idx 이전의 blob 개수 = files에서 지울 인덱스
       const blobBefore = mediaItems
         .slice(0, idx)
         .filter((m) => m.url.startsWith("blob:")).length;
@@ -160,7 +157,6 @@ const UploadPage: React.FC = () => {
   async function ensureUploadedUrls(): Promise<string[]> {
     if (!mediaItems.length) return [];
 
-    // 현재 선택된 미디어들 중에서 blob인 것들의 인덱스 모으기
     const blobIdxs: number[] = [];
     mediaItems.forEach((m, i) => {
       if (m.url.startsWith("blob:")) blobIdxs.push(i);
@@ -168,44 +164,37 @@ const UploadPage: React.FC = () => {
 
     let uploaded: string[] = [];
 
-    // 새로 올린 blob이 있을 때만 업로드 수행
     if (blobIdxs.length > 0) {
       if (blobIdxs.length === 1) {
-        // 파일 1개일 때: 단건 업로드 훅 사용 (File -> string)
-        const file = files[0]; // 유일한 blob 파일
+        const file = files[0];
         const url = await uploadSingle(file);
         uploaded = [url];
       } else {
-        // 여러 개일 때: 다건 업로드 훅 사용 (File[] -> string[])
         uploaded = await uploadMulti(files);
       }
     }
 
-    // 업로드 결과를 mediaItems 순서에 맞춰 다시 조합
     const updatedMedia: MediaItem[] = [];
     let cursor = 0;
 
     for (const item of mediaItems) {
       if (item.url.startsWith("blob:")) {
-        // blob이었던 위치는 업로드된 URL로 치환, type은 그대로 유지
         updatedMedia.push({
           ...item,
           url: uploaded[cursor++],
         });
       } else {
-        // 이미 http(s)인 경우는 그대로 유지
         updatedMedia.push(item);
       }
     }
 
     setMediaItems(updatedMedia);
-    setFiles([]); // 재업로드 방지
+    setFiles([]);
 
-    // 서버에는 URL 배열만 넘기면 되므로 문자열 배열로 반환
     return updatedMedia.map((m) => m.url);
   }
 
-  // 임시 저장 (새 글 + 수정 모드 둘 다 처리)
+  // 임시 저장
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
       alert("제목과 카테고리를 입력해주세요.");
@@ -220,7 +209,7 @@ const UploadPage: React.FC = () => {
       category,
       type: "ARTICLE",
       content,
-      images: mediaUrls, // 현재는 이미지/영상 URL 모두 여기 담김
+      images: mediaUrls,
       postStatus: "DRAFT",
     };
 
@@ -262,7 +251,7 @@ const UploadPage: React.FC = () => {
     );
   };
 
-  // 즉시 업로드
+  // 즉시 업로드(수정)
   const handleUpload = async () => {
     if (!title.trim() || !content.trim() || category === "카테고리 선택") {
       alert("제목, 카테고리, 내용을 입력해주세요!");
@@ -281,22 +270,29 @@ const UploadPage: React.FC = () => {
       postStatus: "PUBLISHED",
     };
 
-    uploadPost(dto, {
-      onSuccess: (res) => {
-        alert(
-          isEdit ? "게시물이 수정되었습니다!" : "게시물이 업로드되었습니다!"
-        );
-        console.log("✅ 업로드 성공:", res);
-        if (!isEdit) resetForm();
+    uploadPost(
+      {
+        dto,
+        postId: isEdit ? postId : undefined, // 🔥 여기서 postId → Query
+        // etag: 필요하면 여기 추가
       },
-      onError: (err) => {
-        console.error("게시물 업로드 실패:", err);
-        alert("게시물 업로드 중 오류가 발생했습니다.");
-      },
-    });
+      {
+        onSuccess: (res) => {
+          alert(
+            isEdit ? "게시물이 수정되었습니다!" : "게시물이 업로드되었습니다!"
+          );
+          console.log("업로드 성공:", res);
+          if (!isEdit) resetForm();
+        },
+        onError: (err) => {
+          console.error("업로드 실패:", err);
+          alert("게시물 업로드 중 오류가 발생했습니다.");
+        },
+      }
+    );
   };
 
-  // 예약 업로드
+  // 예약 업로드(수정)
   const handleScheduleUpload = async (scheduledTime: string | Date) => {
     if (!scheduledTime) {
       alert("예약 시간을 선택해주세요.");
@@ -325,20 +321,28 @@ const UploadPage: React.FC = () => {
       scheduledTime: formattedTime,
     };
 
-    schedulePost(dto, {
-      onSuccess: (res) => {
-        alert(
-          isEdit ? "예약 정보가 수정되었습니다!" : "게시물이 예약되었습니다!"
-        );
-        console.log("✅ 예약 업로드 성공:", res);
-        setShowBookingPopup(false);
-        if (!isEdit) resetForm();
+    // 🔥 여기 수정: dto 하나만 넘기지 말고 객체로 넘기기
+    schedulePost(
+      {
+        dto,
+        postId: isEdit ? postId : undefined,
+        // etag: 필요하면 여기 추가
       },
-      onError: (err) => {
-        console.error("예약 업로드 실패:", err);
-        alert("예약 업로드 중 오류가 발생했습니다.");
-      },
-    });
+      {
+        onSuccess: (res) => {
+          alert(
+            isEdit ? "예약 정보가 수정되었습니다!" : "게시물이 예약되었습니다!"
+          );
+          console.log("✅ 예약 업로드 성공:", res);
+          setShowBookingPopup(false);
+          if (!isEdit) resetForm();
+        },
+        onError: (err) => {
+          console.error("예약 업로드 실패:", err);
+          alert("예약 업로드 중 오류가 발생했습니다.");
+        },
+      }
+    );
   };
 
   // 초기화
@@ -425,7 +429,7 @@ const UploadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 썸네일 리스트 + 개별 삭제 버튼 */}
+              {/* 썸네일 리스트 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {mediaItems.map((item, i) => (
                   <div
@@ -453,7 +457,6 @@ const UploadPage: React.FC = () => {
                         alt={`썸네일-${i + 1}`}
                       />
                     )}
-                    {/* 삭제(X) 버튼 */}
                     <button
                       className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
                       onClick={(e) => handleDeleteMedia(i, e)}
@@ -530,7 +533,6 @@ const UploadPage: React.FC = () => {
                   {isSavingDraft ? "저장 중..." : "임시 저장"}
                 </button>
 
-                {/* ✅ 수정 모드에서만 에디터 픽 버튼 표시 */}
                 {isEdit && (
                   <button
                     onClick={handleToggleEditorPick}
@@ -576,7 +578,6 @@ const UploadPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 이미지/영상 확대 모달 */}
         {/* 이미지/영상 확대 모달 */}
         {showImageModal && (
           <div

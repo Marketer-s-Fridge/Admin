@@ -5,117 +5,119 @@ import {
   PostResponseDto,
   PostHitResponseDto,
 } from "../types";
+import { AxiosHeaderValue } from "axios";
 
 /** 게시 상태 enum */
 export type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED";
 
-/** 쿼리 파라미터 유틸: undefined면 제외 */
-const qp = <T extends Record<string, any>>(obj?: T) => {
+/** =========================
+ *  공통 유틸
+ * ========================*/
+
+/** 
+ * 쿼리 파라미터 유틸: undefined/null/"" 제거
+ * any 사용 없이 안전하게 타입 유지
+ */
+const qp = <
+  T extends Record<string, AxiosHeaderValue | undefined | null | "">
+>(
+  obj?: T
+): Record<string, AxiosHeaderValue> | undefined => {
   if (!obj) return undefined;
-  const clean: Record<string, any> = {};
-  Object.keys(obj).forEach((k) => {
-    const v = (obj as any)[k];
-    if (v !== undefined && v !== null && v !== "") clean[k] = v;
-  });
-  return clean;
+
+  const clean: Record<string, AxiosHeaderValue> = {};
+
+  for (const key of Object.keys(obj)) {
+    const value = obj[key];
+    if (value !== undefined && value !== null && value !== "") {
+      clean[key] = value;
+    }
+  }
+
+  // 아무 값도 없으면 undefined 리턴
+  return Object.keys(clean).length > 0 ? clean : undefined;
 };
 
-/** 응답에서 ETag 추출 */
-const getEtag = (headers?: any) => headers?.etag || headers?.ETag || undefined;
+/** 응답 헤더에서 ETag 추출 */
+const getEtag = (headers?: unknown): string | undefined => {
+  if (!headers || typeof headers !== "object") return undefined;
+
+  const h = headers as Record<string, unknown>;
+  const raw = h["etag"] ?? h["ETag"];
+
+  return typeof raw === "string" ? raw : undefined;
+};
 
 /** =========================
  *  조회
  * ========================*/
 
-/** ✅ 전체 게시물 조회 */
 export const fetchPosts = async (): Promise<PostResponseDto[]> => {
-  console.log("📡 [게시물 전체 조회 요청] /api/posts");
   const res = await api.get<PostResponseDto[]>("/api/posts");
-  console.log("✅ [게시물 전체 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 게시된 게시물 수 조회 */
 export const fetchPublishedCount = async (): Promise<number> => {
-  console.log("📊 [게시된 게시물 수 요청] /api/posts/count/published");
   const res = await api.get<number>("/api/posts/count/published");
-  console.log("✅ [게시된 게시물 수 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 게시된 게시물 n개 조회 (기본 6개) */
 export const fetchPublishedPosts = async (
   limit?: number
 ): Promise<PostResponseDto[]> => {
-  console.log("📄 [게시된 게시물 조회 요청]", { limit });
   const res = await api.get<PostResponseDto[]>("/api/posts/published", {
     params: qp({ limit }),
   });
-  console.log("✅ [게시된 게시물 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 게시물 상세 조회 (+뷰 카운트) */
 export const fetchPost = async (id: number): Promise<PostResponseDto> => {
-  console.log(`🔍 [게시물 상세 조회 요청] postId=${id}`);
   const res = await api.get<PostResponseDto>(`/api/posts/${id}`);
-  console.log("✅ [게시물 상세 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 게시물 상세 + ETag 동시 획득 */
 export const fetchPostWithEtag = async (
   id: number
 ): Promise<{ data: PostResponseDto; etag?: string }> => {
-  console.log(`🔍 [게시물 상세+ETag 요청] postId=${id}`);
   const res = await api.get<PostResponseDto>(`/api/posts/${id}`);
   const etag = getEtag(res.headers);
-  console.log("✅ [게시물 상세+ETag 성공]", { etag });
   return { data: res.data, etag };
 };
 
-/** ✅ 상태별 게시물 조회 */
-export const fetchPostsByStatus = async (status: PostStatus): Promise<PostResponseDto[]> => {
+export const fetchPostsByStatus = async (
+  status: PostStatus
+): Promise<PostResponseDto[]> => {
   const res = await api.get<PostResponseDto[]>("/api/posts/by-status", {
-    params: { postStatus: status }, // ← 여기
+    params: { postStatus: status },
   });
   return res.data;
 };
 
-/** ✅ 카테고리별 게시물 조회 */
 export const fetchByCategory = async (
   category: string,
   limit?: number
 ): Promise<PostResponseDto[]> => {
-  console.log("🏷️ [카테고리별 게시물 조회 요청]", { category, limit });
   const res = await api.get<PostResponseDto[]>("/api/posts/by-category", {
     params: qp({ category, limit }),
   });
-  console.log("✅ [카테고리별 게시물 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 에디터 픽 목록 */
 export const fetchEditorPicks = async (
   limit?: number
 ): Promise<PostResponseDto[]> => {
-  console.log("⭐ [에디터 픽 조회 요청]", { limit });
   const res = await api.get<PostResponseDto[]>("/api/posts/editor-picks", {
     params: qp({ limit }),
   });
-  console.log("✅ [에디터 픽 조회 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 핫 콘텐츠(조회수 기준) */
 export const fetchHotPosts = async (
   limit?: number
 ): Promise<PostResponseDto[]> => {
-  console.log("🔥 [핫 콘텐츠 조회 요청]", { limit });
   const res = await api.get<PostResponseDto[]>("/api/posts/hot", {
     params: qp({ limit }),
   });
-  console.log("✅ [핫 콘텐츠 조회 성공]", res.data);
   return res.data;
 };
 
@@ -123,74 +125,56 @@ export const fetchHotPosts = async (
  *  생성/수정/게시/예약
  * ========================*/
 
-/** ✅ 임시 저장 생성 */
 export const createDraft = async (
   dto: PostRequestDto
 ): Promise<{ data: PostResponseDto; etag?: string }> => {
-  console.log("📝 [임시 저장 생성 요청]", dto);
   const res = await api.post<PostResponseDto>("/api/posts/drafts", dto);
-  const etag = getEtag(res.headers);
-  console.log("✅ [임시 저장 생성 성공]", { etag });
-  return { data: res.data, etag };
+  return { data: res.data, etag: getEtag(res.headers) };
 };
 
-/** ✅ 임시/예약 글 업데이트 (If-Match 옵션) */
 export const updateDraft = async (
   id: number,
   dto: PostRequestDto,
   etag?: string
 ): Promise<{ data: PostResponseDto; etag?: string }> => {
-  console.log(`✏️ [임시/예약 글 업데이트 요청] postId=${id}`, dto);
   const res = await api.patch<PostResponseDto>(`/api/posts/drafts/${id}`, dto, {
     headers: qp({ "If-Match": etag }),
   });
-  const newTag = getEtag(res.headers);
-  console.log("✅ [임시/예약 글 업데이트 성공]", { etag: newTag });
-  return { data: res.data, etag: newTag };
+  return { data: res.data, etag: getEtag(res.headers) };
 };
 
-/** ✅ 게시 (신규/업서트) (If-Match 옵션) */
-export const createPost = async (
-  dto: PostRequestDto,
-  etag?: string
-): Promise<PostResponseDto> => {
-  console.log("🚀 [게시글 업로드 요청]", dto);
-  const res = await api.post<PostResponseDto>("/api/posts/publish", dto, {
-    headers: qp({ "If-Match": etag }),
+export const createPost = async (args: {
+  dto: PostRequestDto;
+  postId?: number;
+  etag?: string;
+}): Promise<PostResponseDto> => {
+  const res = await api.post<PostResponseDto>("/api/posts/publish", args.dto, {
+    params: qp({ postId: args.postId }),
+    headers: qp({ "If-Match": args.etag }),
   });
-  console.log("✅ [게시글 업로드 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 예약 업서트 (If-Match 옵션) */
-export const schedulePost = async (
-  dto: PostRequestDto,
-  etag?: string
-): Promise<PostResponseDto> => {
-  console.log("⏰ [예약 게시글 요청]", dto);
-  const res = await api.post<PostResponseDto>("/api/posts/schedule", dto, {
-    headers: qp({ "If-Match": etag }),
+export const schedulePost = async (args: {
+  dto: PostRequestDto;
+  postId?: number;
+  etag?: string;
+}): Promise<PostResponseDto> => {
+  const res = await api.post<PostResponseDto>("/api/posts/schedule", args.dto, {
+    params: qp({ postId: args.postId }),
+    headers: qp({ "If-Match": args.etag }),
   });
-  console.log("✅ [예약 게시글 성공]", res.data);
   return res.data;
 };
 
-/** ✅ 에디터 픽 설정/해제 */
 export const setEditorPick = async (
   postId: number,
   editorPick: boolean
 ): Promise<PostResponseDto> => {
-  console.log(`[EditorPick] PATCH /api/posts/${postId}/editor-pick`, {
-    postId,
-    editorPick,
-  });
-
   const res = await api.patch<PostResponseDto>(
     `/api/posts/${postId}/editor-pick`,
     { editorPick }
   );
-
-  console.log("[EditorPick] Response:", res.data);
   return res.data;
 };
 
@@ -198,22 +182,13 @@ export const setEditorPick = async (
  *  삭제/카운트
  * ========================*/
 
-/** ✅ 게시물 삭제 (204 기대) */
 export const deletePost = async (id: number): Promise<void> => {
-  console.log(`🗑️ [게시물 삭제 요청] postId=${id}`);
-  const res = await api.delete(`/api/posts/${id}`);
-  if (res.status !== 204) {
-    console.warn("⚠️ 예상과 다른 삭제 응답 코드", res.status);
-  }
-  console.log("✅ [게시물 삭제 성공]");
+  await api.delete(`/api/posts/${id}`);
 };
 
-/** ✅ 게시물 클릭 카운트 증가 */
 export const increaseHit = async (
   id: number
 ): Promise<PostHitResponseDto> => {
-  console.log(`👆 [게시물 클릭 카운트 요청] postId=${id}`);
   const res = await api.post<PostHitResponseDto>(`/api/posts/click/${id}`);
-  console.log("✅ [게시물 클릭 카운트 성공]", res.data);
   return res.data;
 };

@@ -1,8 +1,7 @@
-// src/app/admin/contentsUpload/[[...id]]/page.tsx
+// src/app/admin/contentsUpload/page.tsx  (새 글 작성용)
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import React, { useState } from "react";
 import AdminHeader from "@/components/adminHeader";
 import AdminCategoryBar from "@/components/adminCategoryBar";
 import CustomDropdown from "@/components/customDropdown";
@@ -10,15 +9,12 @@ import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
 import { PostRequestDto } from "@/features/posts/types";
-import { usePost } from "@/features/posts/hooks/usePost";
 import { X } from "lucide-react";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
-import { useUpdateDraft } from "@/features/posts/hooks/admin/useUpdateDraft";
-import { useSetEditorPick } from "@/features/posts/hooks/useSetEditorPick";
-
+import { useCreateDraft } from "@/features/posts/hooks/admin/useCreateDraft";
 // 업로드 유틸
 import {
   useImageUpload,
@@ -33,22 +29,11 @@ interface MediaItem {
 }
 
 const UploadPage: React.FC = () => {
-  // ✅ URL 파라미터에서 id 읽기 ([id] 라우트)
-  const params = useParams<{ id: string }>();
-  const rawId = params.id; // "21"
-  const postId = Number(rawId); // 21
-  const isEdit = false; // 이 페이지는 항상 수정? (현재 false로 설정돼 있음)
+  // const isEdit = false; // 새 글 작성 페이지
 
-  // 업로드 훅 (단건 / 다건) - 이름은 image지만 파일 타입 상관없이 동작
+  // 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
   const { mutateAsync: uploadMulti } = useMultiImageUpload();
-
-  // ✅ 기존 게시글 조회 (수정 모드일 때만)
-  const {
-    data: post,
-    isLoading: isPostLoading,
-    error: postError,
-  } = usePost(postId);
 
   const [category, setCategory] = useState("카테고리 선택");
   const [title, setTitle] = useState("");
@@ -56,9 +41,9 @@ const UploadPage: React.FC = () => {
   const [content, setContent] = useState("");
   const [status, setStatus] = useState("");
 
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]); // 이미지 + 영상
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [files, setFiles] = useState<File[]>([]); // blob에 대응하는 실제 파일들
+  const [files, setFiles] = useState<File[]>([]);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
@@ -67,39 +52,13 @@ const UploadPage: React.FC = () => {
   const [modalMediaUrl, setModalMediaUrl] = useState("");
   const [modalMediaType, setModalMediaType] = useState<MediaType>("image");
 
-  // ✅ 에디터 픽 상태
-  const [editorPick, setEditorPick] = useState(false);
-
   // React Query 훅들
   const { mutate: uploadPost, isPending: isUploading } = useCreatePost();
   const { mutate: schedulePost, isPending: isScheduling } = useSchedulePost();
-  const { mutate: saveDraft, isPending: isSavingDraft } = useUpdateDraft();
-  const { mutate: setEditorPickMutate, isPending: isSettingEditorPick } =
-    useSetEditorPick();
+  const { mutate: createDraftMutate, isPending: isSavingDraft } =
+    useCreateDraft();
 
-  // ✅ 수정 모드일 때, 기존 게시글 데이터를 폼에 세팅
-  useEffect(() => {
-    if (!isEdit || !post) return;
-
-    setTitle(post.title || "");
-    setSubTitle(post.subTitle || "");
-    setCategory(post.category || "카테고리 선택");
-    setContent(post.content || "");
-    if (post.images && post.images.length > 0) {
-      const initialMedia: MediaItem[] = post.images.map((url: string) => ({
-        url,
-        type: "image", // 기존 데이터는 전부 이미지라고 가정
-      }));
-      setMediaItems(initialMedia);
-      setSelectedIndex(0);
-      setFiles([]); // 서버 URL이므로 files 비움
-    }
-
-    // ✅ 에디터 픽 초기값 세팅
-    setEditorPick(!!post.editorPick);
-  }, [isEdit, post]);
-
-  // 이미지/영상 선택(미리보기 + 파일 보관)
+  // 이미지/영상 선택
   const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files;
     if (!f || !f.length) return;
@@ -123,9 +82,9 @@ const UploadPage: React.FC = () => {
     setFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // ✅ 개별 미디어 삭제(미리보기와 files 동기화)
+  // 개별 미디어 삭제
   const handleDeleteMedia = (index: number, e?: React.MouseEvent) => {
-    e?.stopPropagation(); // 썸네일 클릭(선택/모달 오픈)과 분리
+    e?.stopPropagation();
 
     const idx = index;
     const removedItem = mediaItems[idx];
@@ -135,7 +94,6 @@ const UploadPage: React.FC = () => {
     setMediaItems(newItems);
 
     if (removedItem?.url?.startsWith("blob:")) {
-      // idx 이전의 blob 개수 = files에서 지울 인덱스
       const blobBefore = mediaItems
         .slice(0, idx)
         .filter((m) => m.url.startsWith("blob:")).length;
@@ -168,7 +126,7 @@ const UploadPage: React.FC = () => {
 
     if (blobIdxs.length > 0) {
       if (blobIdxs.length === 1) {
-        const file = files[0]; // 유일한 blob 파일
+        const file = files[0];
         const url = await uploadSingle(file);
         uploaded = [url];
       } else {
@@ -193,11 +151,10 @@ const UploadPage: React.FC = () => {
     setMediaItems(updatedMedia);
     setFiles([]);
 
-    // 서버에는 URL 배열만 넘김 (이미지/영상 모두)
     return updatedMedia.map((m) => m.url);
   }
 
-  // 임시 저장 (새 글 + 수정 모드 둘 다 처리)
+  // 임시 저장 (새 글 → /api/posts/drafts POST)
   const handleSaveDraft = async () => {
     if (!title.trim() || !category || category === "카테고리 선택") {
       alert("제목과 카테고리를 입력해주세요.");
@@ -216,45 +173,19 @@ const UploadPage: React.FC = () => {
       postStatus: "DRAFT",
     };
 
-    saveDraft(
-      { id: postId, dto },
-      {
-        onSuccess: (res) => {
-          alert("임시 저장 완료! 📝");
-          console.log("✅ 임시 저장 성공:", res);
-        },
-        onError: (err) => {
-          console.error("임시 저장 실패:", err);
-          alert("임시 저장 중 오류가 발생했습니다.");
-        },
-      }
-    );
+    createDraftMutate(dto, {
+      onSuccess: (res) => {
+        alert("임시 저장 완료! 📝");
+        console.log("✅ 임시 저장 성공:", res);
+      },
+      onError: (err) => {
+        console.error("임시 저장 실패:", err);
+        alert("임시 저장 중 오류가 발생했습니다.");
+      },
+    });
   };
 
-  // 에디터 픽 토글
-  const handleToggleEditorPick = () => {
-    if (!postId) return;
-
-    setEditorPickMutate(
-      { postId, editorPick: !editorPick },
-      {
-        onSuccess: (res) => {
-          setEditorPick(!!res.editorPick);
-          alert(
-            res.editorPick
-              ? "에디터 픽으로 설정되었습니다."
-              : "에디터 픽이 해제되었습니다."
-          );
-        },
-        onError: (err) => {
-          console.error("에디터 픽 설정 실패:", err);
-          alert("에디터 픽 설정 중 오류가 발생했습니다.");
-        },
-      }
-    );
-  };
-
-  // 즉시 업로드
+  // 즉시 업로드 (신규 게시)
   const handleUpload = async () => {
     if (!title.trim() || !content.trim() || category === "카테고리 선택") {
       alert("제목, 카테고리, 내용을 입력해주세요!");
@@ -273,22 +204,23 @@ const UploadPage: React.FC = () => {
       postStatus: "PUBLISHED",
     };
 
-    uploadPost(dto, {
-      onSuccess: (res) => {
-        alert(
-          isEdit ? "게시물이 수정되었습니다!" : "게시물이 업로드되었습니다!"
-        );
-        console.log("✅ 업로드 성공:", res);
-        if (!isEdit) resetForm();
-      },
-      onError: (err) => {
-        console.error("게시물 업로드 실패:", err);
-        alert("게시물 업로드 중 오류가 발생했습니다.");
-      },
-    });
+    uploadPost(
+      { dto }, // ✅ postId 없음 → 신규 게시
+      {
+        onSuccess: (res) => {
+          alert("게시물이 업로드되었습니다!");
+          console.log("✅ 업로드 성공:", res);
+          resetForm();
+        },
+        onError: (err) => {
+          console.error("게시물 업로드 실패:", err);
+          alert("게시물 업로드 중 오류가 발생했습니다.");
+        },
+      }
+    );
   };
 
-  // 예약 업로드
+  // 예약 업로드 (신규 예약)
   const handleScheduleUpload = async (scheduledTime: string | Date) => {
     if (!scheduledTime) {
       alert("예약 시간을 선택해주세요.");
@@ -317,20 +249,21 @@ const UploadPage: React.FC = () => {
       scheduledTime: formattedTime,
     };
 
-    schedulePost(dto, {
-      onSuccess: (res) => {
-        alert(
-          isEdit ? "예약 정보가 수정되었습니다!" : "게시물이 예약되었습니다!"
-        );
-        console.log("✅ 예약 업로드 성공:", res);
-        setShowBookingPopup(false);
-        if (!isEdit) resetForm();
-      },
-      onError: (err) => {
-        console.error("예약 업로드 실패:", err);
-        alert("예약 업로드 중 오류가 발생했습니다.");
-      },
-    });
+    schedulePost(
+      { dto }, // ✅ postId 없음 → 새 예약 게시물
+      {
+        onSuccess: (res) => {
+          alert("게시물이 예약되었습니다!");
+          console.log("✅ 예약 업로드 성공:", res);
+          setShowBookingPopup(false);
+          resetForm();
+        },
+        onError: (err) => {
+          console.error("예약 업로드 실패:", err);
+          alert("예약 업로드 중 오류가 발생했습니다.");
+        },
+      }
+    );
   };
 
   // 초기화
@@ -347,23 +280,6 @@ const UploadPage: React.FC = () => {
   const mainIdx = selectedIndex ?? 0;
   const mainItem = mediaItems[mainIdx];
 
-  // 수정 모드에서 로딩/에러 처리
-  if (isEdit && isPostLoading) {
-    return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        불러오는 중...
-      </div>
-    );
-  }
-
-  if (isEdit && postError) {
-    return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        게시글 정보를 불러오지 못했습니다.
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white min-h-screen">
       <AdminHeader onMenuClick={() => setMenuOpen(!menuOpen)} />
@@ -371,9 +287,7 @@ const UploadPage: React.FC = () => {
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
       <main className="mx-auto px-[5%] sm:px-[10%] lg:px-[15%] py-12">
-        <h1 className="text-2xl font-bold mb-6">
-          {isEdit ? `콘텐츠 수정 (#${postId})` : "새 콘텐츠 업로드"}
-        </h1>
+        <h1 className="text-2xl font-bold mb-6">새 콘텐츠 업로드</h1>
 
         <div className="flex flex-col lg:flex-row gap-12">
           {/* 왼쪽 미디어 업로드 */}
@@ -417,12 +331,12 @@ const UploadPage: React.FC = () => {
                 )}
               </div>
 
-              {/* 썸네일 리스트 + 개별 삭제 버튼 */}
+              {/* 썸네일 리스트 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {mediaItems.map((item, i) => (
                   <div
                     key={i}
-                    className={`relative w-[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
+                    className={`relative w/[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
                       selectedIndex === i ? "ring-2 ring-red-500" : ""
                     }`}
                     onClick={() => {
@@ -445,7 +359,6 @@ const UploadPage: React.FC = () => {
                         alt={`썸네일-${i + 1}`}
                       />
                     )}
-                    {/* 삭제(X) 버튼 */}
                     <button
                       className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
                       onClick={(e) => handleDeleteMedia(i, e)}
@@ -507,7 +420,7 @@ const UploadPage: React.FC = () => {
                 placeholder="콘텐츠 내용 작성"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full aspect-[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
+                className="w-full aspect/[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
               />
             </div>
 
@@ -521,25 +434,6 @@ const UploadPage: React.FC = () => {
                 >
                   {isSavingDraft ? "저장 중..." : "임시 저장"}
                 </button>
-
-                {/* ✅ 수정 모드에서만 에디터 픽 버튼 표시 */}
-                {isEdit ? (
-                  <button
-                    onClick={handleToggleEditorPick}
-                    disabled={isSettingEditorPick}
-                    className={`border px-4 py-2 lg:px-6 lg:py-3 rounded-lg cursor-pointer transition ${
-                      editorPick
-                        ? "border-[#FF4545] text-[#FF4545] hover:bg-red-50"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                    }`}
-                  >
-                    {isSettingEditorPick
-                      ? "처리 중..."
-                      : editorPick
-                      ? "에디터 픽 해제"
-                      : "에디터 픽 지정"}
-                  </button>
-                ) : null}
               </div>
 
               <div className="flex gap-3">
@@ -555,13 +449,7 @@ const UploadPage: React.FC = () => {
                   disabled={isUploading}
                   className="bg-[#FF4545] text-white px-4 py-2 lg:px-6 lg:py-3 rounded-lg font-medium cursor-pointer"
                 >
-                  {isUploading
-                    ? isEdit
-                      ? "수정 중..."
-                      : "업로드 중..."
-                    : isEdit
-                    ? "수정하기"
-                    : "업로드"}
+                  {isUploading ? "업로드 중..." : "업로드"}
                 </button>
               </div>
             </div>
@@ -589,12 +477,13 @@ const UploadPage: React.FC = () => {
                 <img
                   src={modalMediaUrl}
                   alt="미리보기"
-                  className="max-w-full max-h-[90vh] object-contain"
+                  className="max-w-full max-h/[90vh] object-contain"
                 />
               )}
             </div>
           </div>
         )}
+
         {/* 팝업 */}
         {showBookingPopup && (
           <BookingUploadPopup
