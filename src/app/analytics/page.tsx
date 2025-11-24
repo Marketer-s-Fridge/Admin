@@ -162,7 +162,16 @@ const AnalyticsPage = () => {
             <div className="relative flex">
               <button
                 onClick={() => setShowCalendar(true)}
-                className="cursor-pointer border-gray-300 border-1 rounded-lg w-30 text-gray-500 text-[12px] lg:text-sm text-justify px-2.5"
+                className="
+      cursor-pointer
+      border border-gray-300
+      rounded-lg
+      px-3 py-2
+      text-gray-500
+      text-[12px] lg:text-sm
+      text-left           /* ✅ text-justify 제거하고 왼쪽 정렬 */
+      inline-flex items-center gap-2  /* 아이콘 추가 시도 대비 */
+    "
               >
                 {startDate && endDate
                   ? `${formatDate(startDate)} ~ ${formatDate(endDate)}`
