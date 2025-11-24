@@ -420,7 +420,7 @@ const UploadPage: React.FC = () => {
                 placeholder="콘텐츠 내용 작성"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full aspect/[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
+                className="w-full aspect-[4/3] border rounded-lg border-gray-300 p-4 resize-none mb-2"
               />
             </div>
 

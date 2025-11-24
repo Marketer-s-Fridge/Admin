@@ -11,7 +11,6 @@ import AdminContentTable, {
   AdminContentItem,
 } from "@/components/adminContentTable";
 import DateRangePickerModal from "@/components/dateRangePickerModal";
-import Image from "next/image";
 import CustomDropdown2A11Y from "@/components/customDropdown2";
 
 import type { PostStatus } from "@/features/posts/api/postsApi";
