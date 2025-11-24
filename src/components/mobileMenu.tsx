@@ -13,8 +13,7 @@ const menuItems = [
   { label: "업로드 예약", path: "/admin/scheduledUpload" },
   { label: "문의 답변 관리", path: "/admin/inquiryReplies" },
   { label: "통계 및 분석", path: "/admin/analytics" },
-  { label: "홈으로 돌아가기", path: "/" }, // ← 추가됨!
-
+  { label: "홈으로 돌아가기", path: "/" },
 ];
 
 const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
@@ -36,11 +35,14 @@ const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
       onClick={() => setMenuOpen(false)}
     >
       <aside
-        className={`fixed top-0 left-0 h-full w-[260px] max-w-[80%]
-        bg-white shadow-2xl border-r border-gray-100
-        transition-transform duration-300 ease-out
-        ${menuOpen ? "translate-x-0" : "-translate-x-full"}
-         flex flex-col`}
+        className={`
+          fixed top-0 left-0 h-full w-[260px] max-w-[80%]
+          bg-white
+          transition-transform duration-300 ease-out
+          flex flex-col
+          ${menuOpen ? "translate-x-0" : "-translate-x-full"}
+          ${menuOpen ? "shadow-2xl border-r border-gray-100" : "shadow-none border-r border-transparent"}
+        `}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 상단 헤더 */}
@@ -80,7 +82,6 @@ const MobileMenu = ({ menuOpen, setMenuOpen }: MobileMenuProps) => {
                     }
                   `}
                 >
-                  {/* 좌측 포인트 바 */}
                   <span
                     className={`
                       h-6 w-0.5 rounded-full mr-1
