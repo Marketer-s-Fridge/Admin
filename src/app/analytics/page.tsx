@@ -151,118 +151,91 @@ const AnalyticsPage = () => {
       {/* 오버레이 메뉴 (모바일용) */}
       <MobileMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      <section className="px-4 sm:px-6 lg:px-[15%] py-5 sm:py-[4%]">
-        {/* 상단 타이틀 + 검색/필터 */}
-        <div className="mb-3 sm:mb-4">
-          <h1 className="text-base sm:text-lg font-semibold text-gray-900">
-            콘텐츠 성과 분석
-          </h1>
-          <p className="mt-1 text-[11px] sm:text-xs text-gray-400">
-            업로드된 카드뉴스의 조회수, 북마크 수, 반응률을 한 번에 확인할 수 있어요.
-          </p>
-        </div>
+      <section className="px-4 sm:px-10 lg:px-[15%] py-[4%]">
+        <div className="flex flex-row gap-3 justify-between pb-[1.5%]">
+          <AdminSearchInput
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-3 sm:pb-[1.5%]">
-          {/* 검색 영역 */}
-          <div className="w-full sm:max-w-xs">
-            <AdminSearchInput
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-
-          {/* 기간 + 정렬 영역 */}
-          <div className="flex w-full sm:w-auto justify-between sm:justify-end gap-2 sm:gap-3">
-            <button
-              onClick={() => setShowCalendar(true)}
-              className="
-                flex-1 sm:flex-none
-                cursor-pointer
-                border border-gray-300
-                rounded-lg
-                px-3 py-2
-                text-gray-500
-                text-[11px] sm:text-[12px] lg:text-sm
-                text-left
-                inline-flex items-center justify-between sm:justify-start gap-2
-                bg-white
-              "
-            >
-              <span className="truncate">
+          <div className="flex flex-row flex-1 justify-between">
+            <div className="relative flex">
+              <button
+                onClick={() => setShowCalendar(true)}
+                className="
+      cursor-pointer
+      border border-gray-300
+      rounded-lg
+      px-3 py-2
+      text-gray-500
+      text-[12px] lg:text-sm
+      text-left           /* ✅ text-justify 제거하고 왼쪽 정렬 */
+      inline-flex items-center gap-2  /* 아이콘 추가 시도 대비 */
+    "
+              >
                 {startDate && endDate
                   ? `${formatDate(startDate)} ~ ${formatDate(endDate)}`
                   : "기간 선택"}
-              </span>
-              <span className="hidden sm:inline text-[11px] text-gray-400">
-                선택
-              </span>
-            </button>
+              </button>
+            </div>
 
-            <CustomDropdown2A11Y
-              label={sortOption}
-              options={[
-                "반응률 높은 순",
-                "조회수 높은 순",
-                "북마크수 높은 순",
-              ]}
-              onSelect={(value) => {
-                setSortOption(value);
-                setCurrentPage(1); // 정렬 바뀔 때 1페이지로
-              }}
-              buttonClassName="border border-gray-300 rounded-lg px-3 py-2 text-[11px] sm:text-[12px] lg:text-sm text-gray-500 bg-white"
-              className="text-gray-500 place-self-end"
-            />
+            <div className="pl-2">
+              <CustomDropdown2A11Y
+                label={sortOption}
+                options={[
+                  "반응률 높은 순",
+                  "조회수 높은 순",
+                  "북마크수 높은 순",
+                ]}
+                onSelect={(value) => {
+                  setSortOption(value);
+                  setCurrentPage(1); // 정렬 바뀔 때 1페이지로
+                }}
+                buttonClassName="border-0"
+                className="text-gray-500 place-self-end"
+              />
+            </div>
           </div>
         </div>
 
         {/* ✅ 로딩 / 에러 처리 */}
         {isLoading && (
-          <div className="py-10 text-center text-gray-500 text-sm">
+          <div className="py-10 text-center text-gray-500">
             데이터 불러오는 중...
           </div>
         )}
         {isError && !isLoading && (
-          <div className="py-10 text-center text-red-500 text-sm">
+          <div className="py-10 text-center text-red-500">
             분석 데이터를 불러오는 데 실패했습니다.
           </div>
         )}
 
         {!isLoading && !isError && (
           <>
-            {/* 테이블 래퍼: 모바일에서는 가로 스크롤 허용 */}
-            <div className="mt-2 sm:mt-4 rounded-lg border border-gray-100 bg-white shadow-sm">
-              <div className="-mx-4 sm:mx-0 overflow-x-auto">
-                <div className="min-w-[720px] sm:min-w-0">
-                  <AdminContentTable
-                    data={paginatedData}
-                    columns={[
-                      "id",
-                      "image",
-                      "title",
-                      "date",
-                      "views",
-                      "bookmarks",
-                      "engagementRate",
-                    ]}
-                    columnLabels={[
-                      "번호",
-                      "",
-                      "콘텐츠",
-                      "업로드 날짜",
-                      "조회수",
-                      "북마크 수",
-                      "북마크율",
-                    ]}
-                    showHeader={true}
-                  />
-                </div>
-              </div>
-            </div>
+            <AdminContentTable
+              data={paginatedData}
+              columns={[
+                "id",
+                "image",
+                "title",
+                "date",
+                "views",
+                "bookmarks",
+                "engagementRate",
+              ]}
+              columnLabels={[
+                "번호",
+                "",
+                "콘텐츠",
+                "업로드 날짜",
+                "조회수",
+                "북마크 수",
+                "북마크율",
+              ]}
+              showHeader={true}
+            />
 
-            <div className="flex justify-center mt-5 sm:mt-6">
+            <div className="flex justify-center mt-6">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
