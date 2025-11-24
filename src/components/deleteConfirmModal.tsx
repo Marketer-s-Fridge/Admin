@@ -65,7 +65,7 @@ export default function DeleteConfirmModal({
           </>
         ) : (
           <>
-            <p className="text-lg font-semibold mt-6 mb-3">
+            <p className="text-lg font-semibold mt-4 mb-3">
               정말로 삭제하시겠습니까?
             </p>
             <p className="text-sm text-gray-600 mb-6">

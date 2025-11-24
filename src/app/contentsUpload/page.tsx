@@ -330,13 +330,12 @@ const UploadPage: React.FC = () => {
                   </div>
                 )}
               </div>
-
               {/* 썸네일 리스트 */}
               <div className="w-full flex gap-1 mb-4 relative overflow-x-auto">
                 {mediaItems.map((item, i) => (
                   <div
                     key={i}
-                    className={`relative w/[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
+                    className={`relative w-[16%] min-w-[16%] aspect-[3/4] rounded overflow-hidden cursor-pointer ${
                       selectedIndex === i ? "ring-2 ring-red-500" : ""
                     }`}
                     onClick={() => {
@@ -359,6 +358,8 @@ const UploadPage: React.FC = () => {
                         alt={`썸네일-${i + 1}`}
                       />
                     )}
+
+                    {/* X 버튼 */}
                     <button
                       className="cursor-pointer absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center"
                       onClick={(e) => handleDeleteMedia(i, e)}
