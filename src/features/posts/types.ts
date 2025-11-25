@@ -5,6 +5,7 @@
 // 게시물 상태 (요청에는 DELETED 안 쓰더라도 응답에서 올 수 있으니 포함)
 export type PostStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "DELETED";
 
+export type PostTypes = "NORMAL" | "REELS"
 // Hit 타입
 export type HitType = "VIEW" | "CLICK" | "SCROLL" | string;
 
@@ -15,6 +16,8 @@ export type HitType = "VIEW" | "CLICK" | "SCROLL" | string;
 export interface PostRequestDto {
   /** 제목 (@NotBlank 공통) */
   title: string;
+
+  postType: PostTypes;
 
   /** 부제목 (선택) */
   subTitle?: string;
@@ -78,6 +81,8 @@ export interface PostHitResponseDto {
 export interface PostResponseDto {
   /** 게시글 ID */
   id: number;
+
+  postType: PostTypes;
 
   /** 게시글 제목 */
   title: string;

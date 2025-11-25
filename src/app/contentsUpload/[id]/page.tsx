@@ -9,7 +9,7 @@ import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
-import { PostRequestDto } from "@/features/posts/types";
+import { PostRequestDto, PostTypes } from "@/features/posts/types";
 import { usePost } from "@/features/posts/hooks/usePost";
 import { X } from "lucide-react";
 
@@ -59,6 +59,9 @@ const UploadPage: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [files, setFiles] = useState<File[]>([]);
 
+  // ✅ 게시글 타입 (NORMAL / REELS)
+  const [postType, setPostType] = useState<PostTypes>("NORMAL");
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
@@ -84,6 +87,7 @@ const UploadPage: React.FC = () => {
     setSubTitle(post.subTitle || "");
     setCategory(post.category || "카테고리 선택");
     setContent(post.content || "");
+    setPostType(post.postType || "NORMAL");
 
     if (post.images && post.images.length > 0) {
       const initialMedia: MediaItem[] = post.images.map((url: string) => ({
@@ -205,6 +209,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -262,6 +267,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -274,7 +280,6 @@ const UploadPage: React.FC = () => {
       {
         dto,
         postId: isEdit ? postId : undefined, // 🔥 여기서 postId → Query
-        // etag: 필요하면 여기 추가
       },
       {
         onSuccess: (res) => {
@@ -312,6 +317,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -321,12 +327,10 @@ const UploadPage: React.FC = () => {
       scheduledTime: formattedTime,
     };
 
-    // 🔥 여기 수정: dto 하나만 넘기지 말고 객체로 넘기기
     schedulePost(
       {
         dto,
         postId: isEdit ? postId : undefined,
-        // etag: 필요하면 여기 추가
       },
       {
         onSuccess: (res) => {
@@ -354,6 +358,7 @@ const UploadPage: React.FC = () => {
     setMediaItems([]);
     setSelectedIndex(null);
     setFiles([]);
+    setPostType("NORMAL");
   };
 
   const mainIdx = selectedIndex ?? 0;
@@ -505,6 +510,36 @@ const UploadPage: React.FC = () => {
                 onChange={(e) => setSubTitle(e.target.value)}
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-black mb-5 pb-1.5 sm:text-xl placeholder:text-gray-400"
               />
+
+              {/* 🔥 게시글 타입 선택 (NORMAL / REELS) */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-gray-600">콘텐츠 타입</span>
+                <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setPostType("NORMAL")}
+                    className={`px-4 py-1.5 text-sm ${
+                      postType === "NORMAL"
+                        ? "bg-[#FF4545] text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    게시글
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPostType("REELS")}
+                    className={`px-4 py-1.5 text-sm border-l border-gray-200 ${
+                      postType === "REELS"
+                        ? "bg-[#FF4545] text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    릴스
+                  </button>
+                </div>
+              </div>
+
               <div className="place-self-end text-gray-500 flex flex-row w-[35%] gap-2 mb-6">
                 <CustomDropdown
                   label={category}

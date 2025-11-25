@@ -8,13 +8,14 @@ import CustomDropdown from "@/components/customDropdown";
 import BookingUploadPopup from "@/components/bookingUploadPopup";
 import StatusSelectModal from "@/components/statusSelectModal";
 import MobileMenu from "@/components/mobileMenu";
-import { PostRequestDto } from "@/features/posts/types";
+import { PostRequestDto, PostTypes } from "@/features/posts/types";
 import { X } from "lucide-react";
 
 // React Query 훅
 import { useCreatePost } from "@/features/posts/hooks/admin/useCreatePost";
 import { useSchedulePost } from "@/features/posts/hooks/admin/useSchedulePost";
 import { useCreateDraft } from "@/features/posts/hooks/admin/useCreateDraft";
+
 // 업로드 유틸
 import {
   useImageUpload,
@@ -29,8 +30,6 @@ interface MediaItem {
 }
 
 const UploadPage: React.FC = () => {
-  // const isEdit = false; // 새 글 작성 페이지
-
   // 업로드 훅 (단건 / 다건)
   const { mutateAsync: uploadSingle } = useImageUpload();
   const { mutateAsync: uploadMulti } = useMultiImageUpload();
@@ -44,6 +43,9 @@ const UploadPage: React.FC = () => {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [files, setFiles] = useState<File[]>([]);
+
+  // ✅ 게시글 타입 (NORMAL / REELS)
+  const [postType, setPostType] = useState<PostTypes>("NORMAL");
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [showBookingPopup, setShowBookingPopup] = useState(false);
@@ -165,6 +167,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -196,6 +199,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -240,6 +244,7 @@ const UploadPage: React.FC = () => {
 
     const dto: PostRequestDto = {
       title,
+      postType,
       subTitle,
       category,
       type: "ARTICLE",
@@ -275,6 +280,7 @@ const UploadPage: React.FC = () => {
     setMediaItems([]);
     setSelectedIndex(null);
     setFiles([]);
+    setPostType("NORMAL");
   };
 
   const mainIdx = selectedIndex ?? 0;
@@ -408,6 +414,36 @@ const UploadPage: React.FC = () => {
                 onChange={(e) => setSubTitle(e.target.value)}
                 className="w-full border-b border-gray-300 focus:outline-none focus:border-black mb-5 pb-1.5 sm:text-xl placeholder:text-gray-400"
               />
+
+              {/* 🔥 게시글 타입 선택 (NORMAL / REELS) */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm text-gray-600">콘텐츠 타입</span>
+                <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setPostType("NORMAL")}
+                    className={`px-4 py-1.5 text-sm ${
+                      postType === "NORMAL"
+                        ? "bg-[#FF4545] text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    게시글
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPostType("REELS")}
+                    className={`px-4 py-1.5 text-sm border-l border-gray-200 ${
+                      postType === "REELS"
+                        ? "bg-[#FF4545] text-white"
+                        : "bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    릴스
+                  </button>
+                </div>
+              </div>
+
               <div className="place-self-end text-gray-500 flex flex-row w-[35%] gap-2 mb-6">
                 <CustomDropdown
                   label={category}
