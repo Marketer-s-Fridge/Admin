@@ -116,45 +116,71 @@ const UploadPage: React.FC = () => {
   };
 
   // blob만 S3 업로드해서 http(s)로 치환
-  async function ensureUploadedUrls(): Promise<string[]> {
-    if (!mediaItems.length) return [];
+ // 🔥 blob 업로드 + (REELS일 때) 썸네일까지 포함해서 images 배열 생성
+async function ensureUploadedUrls(): Promise<string[]> {
+  if (!mediaItems.length) return [];
 
-    const blobIdxs: number[] = [];
-    mediaItems.forEach((m, i) => {
-      if (m.url.startsWith("blob:")) blobIdxs.push(i);
-    });
+  // 1) REELS일 때, video 파일에서 썸네일 생성 + 업로드
+  let thumbnailUrl: string | undefined = undefined;
 
-    let uploaded: string[] = [];
-
-    if (blobIdxs.length > 0) {
-      if (blobIdxs.length === 1) {
-        const file = files[0];
-        const url = await uploadSingle(file);
-        uploaded = [url];
-      } else {
-        uploaded = await uploadMulti(files);
+  if (postType === "REELS") {
+    // files 중 첫 번째 video 파일 기준으로 썸네일 생성 (Reels 한 개 기준)
+    const videoFile = files.find((f) => f.type.startsWith("video/"));
+    if (videoFile) {
+      try {
+        const thumbFile = await extractVideoThumbnail(videoFile, 1); // 1초 지점
+        thumbnailUrl = await uploadSingle(thumbFile);
+      } catch (e) {
+        console.error("썸네일 생성 실패, 썸네일 없이 진행:", e);
       }
     }
-
-    const updatedMedia: MediaItem[] = [];
-    let cursor = 0;
-
-    for (const item of mediaItems) {
-      if (item.url.startsWith("blob:")) {
-        updatedMedia.push({
-          ...item,
-          url: uploaded[cursor++],
-        });
-      } else {
-        updatedMedia.push(item);
-      }
-    }
-
-    setMediaItems(updatedMedia);
-    setFiles([]);
-
-    return updatedMedia.map((m) => m.url);
   }
+
+  // 2) 기존 blob → S3 업로드 로직
+  const blobIdxs: number[] = [];
+  mediaItems.forEach((m, i) => {
+    if (m.url.startsWith("blob:")) blobIdxs.push(i);
+  });
+
+  let uploaded: string[] = [];
+
+  if (blobIdxs.length > 0) {
+    if (blobIdxs.length === 1) {
+      const file = files[0];
+      const url = await uploadSingle(file);
+      uploaded = [url];
+    } else {
+      uploaded = await uploadMulti(files);
+    }
+  }
+
+  const updatedMedia: MediaItem[] = [];
+  let cursor = 0;
+
+  for (const item of mediaItems) {
+    if (item.url.startsWith("blob:")) {
+      updatedMedia.push({
+        ...item,
+        url: uploaded[cursor++],
+      });
+    } else {
+      updatedMedia.push(item);
+    }
+  }
+
+  setMediaItems(updatedMedia);
+  setFiles([]);
+
+  const mediaUrls = updatedMedia.map((m) => m.url);
+
+  // 3) REELS + 썸네일 성공 → [thumbnail, ...media]
+  if (postType === "REELS" && thumbnailUrl) {
+    return [thumbnailUrl, ...mediaUrls];
+  }
+
+  // NORMAL이거나 썸네일 생성 실패 → 원래대로
+  return mediaUrls;
+}
 
   // 임시 저장 (새 글 → /api/posts/drafts POST)
   const handleSaveDraft = async () => {
@@ -514,7 +540,7 @@ const UploadPage: React.FC = () => {
                 <img
                   src={modalMediaUrl}
                   alt="미리보기"
-                  className="max-w-full max-h/[90vh] object-contain"
+                  className="max-w-full max-h-[90vh] object-contain"
                 />
               )}
             </div>
@@ -544,3 +570,56 @@ const UploadPage: React.FC = () => {
 };
 
 export default UploadPage;
+
+
+async function extractVideoThumbnail(
+  file: File,
+  time = 1 // N초 지점 프레임
+): Promise<File> {
+  return new Promise<File>((resolve, reject) => {
+    const video = document.createElement("video");
+    video.src = URL.createObjectURL(file);
+    video.crossOrigin = "anonymous";
+
+    video.addEventListener("loadedmetadata", () => {
+      const targetTime = Math.min(time, video.duration || time);
+      video.currentTime = targetTime;
+    });
+
+    video.addEventListener("error", (e) => {
+      reject(e);
+    });
+
+    video.addEventListener("seeked", () => {
+      const canvas = document.createElement("canvas");
+      const w = video.videoWidth || 720;
+      const h = video.videoHeight || 1280;
+
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Canvas 2D context not available"));
+        return;
+      }
+
+      ctx.drawImage(video, 0, 0, w, h);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to create thumbnail blob"));
+            return;
+          }
+          const thumbFile = new File([blob], `${file.name}-thumbnail.jpg`, {
+            type: "image/jpeg",
+          });
+          resolve(thumbFile);
+        },
+        "image/jpeg",
+        0.8
+      );
+    });
+  });
+}
