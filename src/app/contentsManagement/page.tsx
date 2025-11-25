@@ -73,14 +73,24 @@ const confirmDelete = () => {
   }, []);
 
   // ✅ 필터 + 검색
-  const filteredData = posts.filter((item) => {
+// ✅ 필터 + 검색 + 최신순 정렬
+const filteredData = [...posts] // 원본 배열 복사
+  // 1) createdAt 기준 최신순 정렬
+  .sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+  // 2) 카테고리/상태/검색 필터링
+  .filter((item) => {
     const matchCategory =
       !selectedCategory || item.category === selectedCategory;
+
     const matchStatus =
       !selectedStatus ||
       (item.postStatus === "DRAFT" && selectedStatus === "임시저장") ||
       (item.postStatus === "PUBLISHED" && selectedStatus === "게시 완료") ||
       (item.postStatus === "SCHEDULED" && selectedStatus === "예약됨");
+
     const matchSearch =
       !search ||
       item.title.includes(search) ||
@@ -89,6 +99,7 @@ const confirmDelete = () => {
 
     return matchCategory && matchStatus && matchSearch;
   });
+
 
   // ✅ 페이지네이션 (10개씩 예시)
   const itemsPerPage = 10;
