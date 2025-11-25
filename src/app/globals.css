@@ -57,7 +57,9 @@ body {
 
 @font-face {
   font-family: "Pretendard";
-  src: url("/fonts/Pretendard-Regular.ttf") format("ttf");
+  src: url("/fonts/Pretendard-Regular.ttf") format("ttf"),
+    url("/fonts/Pretendard-Regular.woff") format("woff"),
+    url("/fonts/Pretendard-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
