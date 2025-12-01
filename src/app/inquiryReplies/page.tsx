@@ -72,6 +72,7 @@ export default function InquiryRepliesPage() {
     1,
     Math.ceil(filteredSorted.length / PAGE_SIZE)
   );
+
   const pageSlice = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return filteredSorted.slice(start, start + PAGE_SIZE);
@@ -85,7 +86,7 @@ export default function InquiryRepliesPage() {
         email: item.writerEmail ?? "-",
         category: item.category ?? "-",
         date: (item.updatedAt || item.createdAt || "").slice(0, 10),
-        status: mapStatusToLabel(item.status), // ✅ 한글 라벨로 넣기
+        status: mapStatusToLabel(item.status),
         image: "",
         onClickRow: () => router.push(`/admin/inquiryReplies/${item.id}`),
       })),
@@ -155,36 +156,56 @@ export default function InquiryRepliesPage() {
           </div>
         </div>
 
-        {/* 테이블 */}
-        <AdminContentTable
-          data={rows}
-          columns={[
-            "id",
-            "title",
-            "email",
-            "category",
-            "date",
-            "status",
-          ]}
-          showHeader
-          columnLabels={[
-            "번호",
-            "제목",
-            "이메일",
-            "문의 유형",
-            "작성일",
-            "처리 상태",
-          ]}
-        />
+        {/* 로딩/에러 */}
+        {isLoading && (
+          <p className="text-sm text-gray-500 px-2">불러오는 중…</p>
+        )}
+        {isError && (
+          <p className="text-sm text-red-500 px-2">
+            문의 목록을 불러오지 못했습니다.
+          </p>
+        )}
 
-        {/* 페이지네이션 */}
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(p) => setCurrentPage(p)}
-          />
-        </div>
+        {/* 데이터 없을 때 */}
+        {!isLoading && !isError && filteredSorted.length === 0 && (
+          <div className="text-center text-gray-500 mt-10">
+            게시물이 없습니다.
+          </div>
+        )}
+
+        {/* 데이터 있을 때만 테이블 + 페이지네이션 */}
+        {!isLoading && !isError && filteredSorted.length > 0 && (
+          <>
+            <AdminContentTable
+              data={rows}
+              columns={[
+                "id",
+                "title",
+                "email",
+                "category",
+                "date",
+                "status",
+              ]}
+              showHeader
+              columnLabels={[
+                "번호",
+                "제목",
+                "이메일",
+                "문의 유형",
+                "작성일",
+                "처리 상태",
+              ]}
+            />
+
+            <div className="flex justify-center mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(p) => setCurrentPage(p)}
+              />
+            </div>
+          </>
+        )}
       </section>
     </main>
   );
