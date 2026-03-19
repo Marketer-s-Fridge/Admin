@@ -91,7 +91,20 @@ export const signin = async (dto: SigninRequestDto): Promise<string> => {
   }
 
   localStorage.setItem("accessToken", token);
+  setAccessTokenCookie(token);
   return token;
+};
+
+const setAccessTokenCookie = (token: string) => {
+  if (typeof window === "undefined") return;
+
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = [
+    `accessToken=${encodeURIComponent(token)}`,
+    "Path=/",
+    "SameSite=Lax",
+    "Max-Age=604800",
+  ].join("; ") + secure;
 };
 
 /** ✅ 아이디 찾기 */
